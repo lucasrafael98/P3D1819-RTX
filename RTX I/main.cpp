@@ -4,9 +4,6 @@
 // (c) 2016 by Joao Madeiras Pereira
 // TEMPLATE: Whitted Ray Tracing NFF scenes and drawing points with Modern OpenGL
 //
-//You should develop your rayTracing( Ray ray, int depth, float RefrIndex) which returns a color and
-// to develop your load_NFF function
-//
 ///////////////////////////////////////////////////////////////////////
 
 #include <stdlib.h>
@@ -234,9 +231,9 @@ void renderScene()
 
 			vertices[index_pos++]= (float)x;
 			vertices[index_pos++]= (float)y;
-			colors[index_col++]= (float)color.r;
-			colors[index_col++]= (float)color.g;
-			colors[index_col++]= (float)color.b;	
+			colors[index_col++]= (float)color.getR();
+			colors[index_col++]= (float)color.getG();
+			colors[index_col++]= (float)color.getB();	
 
 			if(draw_mode == 0) {  // desenhar o conteudo da janela ponto a ponto
 				drawPoints();

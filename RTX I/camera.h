@@ -11,11 +11,11 @@ private:
     int _resY;
 public:
 
-    Camera(){}
-    ~Camera(){}
+    Camera(int resX, int resY);
+    ~Camera();
 
-    int getResX(){}
-    int getResY(){}
+    int getResX();
+    int getResY();
 
 };
 

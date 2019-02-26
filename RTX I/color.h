@@ -6,14 +6,20 @@
 #include <fstream>
 
 class Color{
+private:
+    float _r;
+    float _g;
+    float _b;
 public:
 
-    Color(){}
-    ~Color(){}
+    Color();
+    Color(float r, float g, float b);
+    ~Color();
 
-    float r;
-    float g;
-    float b;
+    float getR();
+    float getG();
+    float getB();
+
 };
 
 #endif

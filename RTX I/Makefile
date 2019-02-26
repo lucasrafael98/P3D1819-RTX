@@ -1,8 +1,11 @@
 
 default:
+	g++ -c camera.cpp
+	g++ -c color.cpp
+	g++ -c ray.cpp
 	g++ -c scene.cpp
-	g++ -c ex1.cpp
-	g++ -o ex1  scene.o ex1.o -lGL -lGLEW -lglut -lGLU
+	g++ -c main.cpp
+	g++ -o rtx camera.o color.o ray.o scene.o main.o -lGL -lGLEW -lglut -lGLU
 
 clean:
-	rm *.o ex1
+	rm *.o rtx

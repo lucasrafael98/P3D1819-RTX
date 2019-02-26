@@ -8,8 +8,8 @@
 class Ray{
 public:
 
-    Ray(){}
-    ~Ray(){}
+    Ray();
+    ~Ray();
 
 };
 
