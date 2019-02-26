@@ -1,7 +1,7 @@
  ///////////////////////////////////////////////////////////////////////
 //
 // P3D Course
-// (c) 2016 by João Madeiras Pereira
+// (c) 2016 by Joao Madeiras Pereira
 // TEMPLATE: Whitted Ray Tracing NFF scenes and drawing points with Modern OpenGL
 //
 //You should develop your rayTracing( Ray ray, int depth, float RefrIndex) which returns a color and
@@ -19,6 +19,9 @@
 #include <GL/freeglut.h>
 
 #include "scene.h"
+#include "color.h"
+#include "ray.h"
+#include "camera.h"
 
 #define CAPTION "ray tracer"
 
@@ -52,9 +55,13 @@ int WindowHandle = 0;
 
 ///////////////////////////////////////////////////////////////////////  RAY-TRACE SCENE
 
+Ray computePrimaryRay(float x, float y){
+	// TODO implement function
+}
+
 Color rayTracing( Ray ray, int depth, float RefrIndex)
 {
-    INSERT HERE YOUR CODE
+    // TODO implement RTX
 }
 
 /////////////////////////////////////////////////////////////////////// ERRORS
@@ -153,8 +160,8 @@ void createBufferObjects()
 	glGenBuffers(2, VboId);
 	glBindBuffer(GL_ARRAY_BUFFER, VboId[0]);
 
-	/* Não é necessário fazer glBufferData, ou seja o envio dos pontos para a placa gráfica pois isso 
-	é feito na drawPoints em tempo de execução com GL_DYNAMIC_DRAW */
+	/* Nao e necessario fazer glBufferData, ou seja o envio dos pontos para a placa grafica pois isso 
+	e feito na drawPoints em tempo de execucao com GL_DYNAMIC_DRAW */
 
 	glEnableVertexAttribArray(VERTEX_COORD_ATTRIB);
 	glVertexAttribPointer(VERTEX_COORD_ATTRIB, 2, GL_FLOAT, 0, 0, 0);
@@ -163,11 +170,12 @@ void createBufferObjects()
 	glEnableVertexAttribArray(COLOR_ATTRIB);
 	glVertexAttribPointer(COLOR_ATTRIB, 3, GL_FLOAT, 0, 0, 0);
 	
-// unbind the VAO
+	// unbind the VAO
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glDisableVertexAttribArray(VERTEX_COORD_ATTRIB);
-	glDisableVertexAttribArray(COLOR_ATTRIB);
+	// commented due to GPU problems (?)
+	//glDisableVertexAttribArray(VERTEX_COORD_ATTRIB);
+	//glDisableVertexAttribArray(COLOR_ATTRIB);
 	checkOpenGLError("ERROR: Could not create VAOs and VBOs.");
 }
 
@@ -213,15 +221,16 @@ void renderScene()
 {
 	int index_pos=0;
 	int index_col=0;
+	Ray ray;
+	Color color;
 
 	for (int y = 0; y < RES_Y; y++)
 	{
 		for (int x = 0; x < RES_X; x++)
 		{
-		
-		    YOUR 2 FUNTIONS: 
-				ray = calculate PrimaryRay(x, y);
-				color=rayTracing(ray, 1, 1.0 );
+			// TODO implement these two
+			ray = computePrimaryRay(x, y);
+			color = rayTracing(ray, 1, 1.0 );
 
 			vertices[index_pos++]= (float)x;
 			vertices[index_pos++]= (float)y;
@@ -229,21 +238,21 @@ void renderScene()
 			colors[index_col++]= (float)color.g;
 			colors[index_col++]= (float)color.b;	
 
-			if(draw_mode == 0) {  // desenhar o conteúdo da janela ponto a ponto
+			if(draw_mode == 0) {  // desenhar o conteudo da janela ponto a ponto
 				drawPoints();
 				index_pos=0;
 				index_col=0;
 			}
 		}
 		printf("line %d", y);
-		if(draw_mode == 1) {  // desenhar o conteúdo da janela linha a linha
+		if(draw_mode == 1) {  // desenhar o conteudo da janela linha a linha
 				drawPoints();
 				index_pos=0;
 				index_col=0;
 		}
 	}
 
-	if(draw_mode == 2) //preenchar o conteúdo da janela com uma imagem completa
+	if(draw_mode == 2) //preenchar o conteudo da janela com uma imagem completa
 		 drawPoints();
 
 	printf("Terminou!\n"); 	
@@ -339,23 +348,22 @@ void init(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-    INSERT HERE YOUR CODE FOR PARSING NFF FILES
-	scene = new Scene();
-	if(!(scene->load_nff("jap.nff"))) return 0;
-	RES_X = scene->GetCamera()->GetResX();
-	RES_Y = scene->GetCamera()->GetResY();
+    // TODO parse nff
+	scene = new Scene("scene.nff");
+	RES_X = scene->getCamera()->getResX();
+	RES_Y = scene->getCamera()->getResY();
 
-	if(draw_mode == 0) { // desenhar o conteúdo da janela ponto a ponto
+	if(draw_mode == 0) { // desenhar o conteudo da janela ponto a ponto
 		size_vertices = 2*sizeof(float);
 		size_colors = 3*sizeof(float);
 		printf("DRAWING MODE: POINT BY POINT\n");
 	}
-	else if(draw_mode == 1) { // desenhar o conteúdo da janela linha a linha
+	else if(draw_mode == 1) { // desenhar o conteudo da janela linha a linha
 		size_vertices = 2*RES_X*sizeof(float);
 		size_colors = 3*RES_X*sizeof(float);
 		printf("DRAWING MODE: LINE BY LINE\n");
 	}
-	else if(draw_mode == 2) { // preencher o conteúdo da janela com uma imagem completa
+	else if(draw_mode == 2) { // preencher o conteudo da janela com uma imagem completa
 		size_vertices = 2*RES_X*RES_Y*sizeof(float);
 		size_colors = 3*RES_X*RES_Y*sizeof(float);
 		printf("DRAWING MODE: FULL IMAGE\n");
