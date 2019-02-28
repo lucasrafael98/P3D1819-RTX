@@ -13,6 +13,7 @@
 #include "SceneObject.h"
 #include "Sphere.h"
 #include "Cone.h"
+#include "Plane.h"
 
 class Scene{
 private:

@@ -229,9 +229,7 @@ void renderScene()
 		{
 			// TODO: implement these two
 			ray = computePrimaryRay(x, y);
-			// TODO: dont leave this commented, please. line below commented is for testing
-			//color = rayTracing(ray, 1, 1.0 );
-			color = *(scene->getBGColor());
+			color = rayTracing(ray, 1, 1.0 );
 
 			vertices[index_pos++]= (float)x;
 			vertices[index_pos++]= (float)y;
@@ -245,7 +243,7 @@ void renderScene()
 				index_col=0;
 			}
 		}
-		printf("Line number %d; ", y);
+		printf("lineno %d; ", y);
 		if(draw_mode == 1) {  // desenhar o conteudo da janela linha a linha
 				drawPoints();
 				index_pos=0;
