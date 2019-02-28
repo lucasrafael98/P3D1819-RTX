@@ -1,5 +1,5 @@
-#include "scene.h"
-#include "camera.h"
+#include "Scene.h"
+#include "Camera.h"
 
 std::vector<std::string> tokenizeLine(std::string line){
     std::vector<std::string> lin_proc;
@@ -10,10 +10,14 @@ std::vector<std::string> tokenizeLine(std::string line){
 }
 
 void Scene::loadNFF(std::string filename){
+    // TODO check syntax errors in NFF? lol
     std::ifstream nff(filename);
     std::string line;
+    // camera attrs
     Vector3 *fromVec, *atVec, *upVec;
     float camAngle, camHither, resX, resY;
+    // current material to use on geometry
+    float material[8];
     while(std::getline(nff, line)){
         std::vector<std::string> lin_proc = tokenizeLine(line);
         if(lin_proc.at(0) == std::string("b")){
@@ -45,10 +49,18 @@ void Scene::loadNFF(std::string filename){
             resY = stof(res.at(2));
         }
         else if(lin_proc.at(0) == std::string("l")){
-            // positional light
+            // positional light: xyz, optional rgb (1,1,1 white if not specified)
+            if(lin_proc.size() == 4) 
+                this->_lights.push_back(new Light(stof(lin_proc.at(1)), stof(lin_proc.at(2)), stof(lin_proc.at(3))));
+            else if(lin_proc.size() == 7)
+                this->_lights.push_back(new Light(stof(lin_proc.at(1)), stof(lin_proc.at(2)), stof(lin_proc.at(3)),
+                                                    stof(lin_proc.at(4)), stof(lin_proc.at(5)), stof(lin_proc.at(6))));
         }
         else if(lin_proc.at(0) == std::string("f")){
-            // material properties
+            // change material
+            for(int i = 1; i != 10; i++){
+                material[i - 1] = stof(lin_proc.at(i));
+            }
         }
         else if(lin_proc.at(0) == std::string("c")){
             // cone/cylinder
@@ -62,6 +74,9 @@ void Scene::loadNFF(std::string filename){
         else if(lin_proc.at(0) == std::string("pp")){
             // polygonal patch
         }
+        else if(lin_proc.at(0) == std::string("pl")){
+            // plane
+        }
     }
 }
 
@@ -70,5 +85,13 @@ Scene::Scene(std::string filename){
     this->_camera = new Camera(256,256);
 }
 
+Scene::~Scene(){
+    delete this->_camera;
+    delete this->_bgColor;
+    for(Light* l: this->_lights)
+        delete l;
+}
+
 Camera* Scene::getCamera(){ return this->_camera; }
 Color* Scene::getBGColor(){ return this->_bgColor; }
+Light* Scene::getLight(int i){ return this->_lights.at(i); }

@@ -15,17 +15,19 @@
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 
-#include "scene.h"
-#include "color.h"
-#include "ray.h"
-#include "camera.h"
+#include "Scene.h"
+#include "Color.h"
+#include "Ray.h"
+#include "Camera.h"
 
-#define CAPTION "ray tracer"
+#define CAPTION "RTX ON"
 
 #define VERTEX_COORD_ATTRIB 0
 #define COLOR_ATTRIB 1
 
 #define MAX_DEPTH 6
+
+#define NFF "NFF/ex1.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
@@ -348,7 +350,7 @@ void init(int argc, char* argv[])
 int main(int argc, char* argv[])
 {
     // TODO parse nff
-	scene = new Scene("scene.nff");
+	scene = new Scene(std::string(NFF));
 	RES_X = scene->getCamera()->getResX();
 	RES_Y = scene->getCamera()->getResY();
 

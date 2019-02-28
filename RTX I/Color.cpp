@@ -1,4 +1,4 @@
-#include "color.h"
+#include "Color.h"
 
 Color::Color(){
     this->_r = 0;

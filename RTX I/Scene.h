@@ -6,22 +6,25 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
-#include "camera.h"
-#include "color.h"
-#include "vector3.h"
+#include "Camera.h"
+#include "Color.h"
+#include "Vector3.h"
+#include "Light.h"
 
 class Scene{
 private:
     void loadNFF(std::string filename);
     Camera *_camera;
     Color* _bgColor;
+    std::vector<Light*> _lights;
 public:
 
     Scene(std::string filename);
-    ~Scene(){}
+    ~Scene();
 
     Camera* getCamera();
     Color* getBGColor();
+    Light* getLight(int i);
 
 };
 
