@@ -1,6 +1,10 @@
 #include "Polygon.h"
 
-Polygon::Polygon(std::vector<Vector3*> verts): _verts(verts){}
+Polygon::Polygon(float r, float g, float b, float diff,
+                 float spec, float shine, float transm,
+                 float refidx, std::vector<Vector3*> verts):
+                 SceneObject(r,g,b,diff,spec,shine,transm,refidx),
+                  _verts(verts){}
 Polygon::~Polygon(){
     for(Vector3* vec: this->_verts)
         delete vec;

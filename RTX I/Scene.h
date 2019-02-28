@@ -14,6 +14,8 @@
 #include "Sphere.h"
 #include "Cone.h"
 #include "Plane.h"
+#include "Polygon.h"
+#include "PolyPlane.h"
 
 class Scene{
 private:

@@ -121,10 +121,24 @@ void Scene::loadNFF(std::string filename){
                 std::vector<std::string> vert = tokenizeLine(line);
                 verts.push_back(new Vector3(stof(vert.at(0)), stof(vert.at(1)), stof(vert.at(2))));
             }
-            // TODO: add to scene
+            this->_objects.push_back(
+                new Polygon(material[0], material[1], material[2],
+                             material[3], material[4], material[5], 
+                             material[6], material[7], verts));
         }
         else if(lin_proc.at(0) == std::string("pp")){
-            // TODO: polygonal patch
+            std::vector<Vector3*> verts;
+            std::vector<Vector3*> norms;
+            for(int i = 0; i != stof(lin_proc.at(1)); i++){
+                std::getline(nff, line);
+                std::vector<std::string> vert = tokenizeLine(line);
+                verts.push_back(new Vector3(stof(vert.at(0)), stof(vert.at(1)), stof(vert.at(2))));
+                norms.push_back(new Vector3(stof(vert.at(3)), stof(vert.at(4)), stof(vert.at(5))));
+            }
+            this->_objects.push_back(
+                new PolyPlane(material[0], material[1], material[2],
+                             material[3], material[4], material[5], 
+                             material[6], material[7], verts, norms));
         }
         else if(lin_proc.at(0) == std::string("pl")){
             this->_objects.push_back(
