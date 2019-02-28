@@ -2,6 +2,7 @@
 #define SCENEOBJECT_H
 
 #include "Material.h"
+#include "Vector3.h"
 
 // Describes a 3D object. A plane is ~sorta~ different so it doesn't inherit this.
 

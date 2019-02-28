@@ -1,15 +1,12 @@
+GLFLAGS=-lGL -lGLEW -lglut -lGLU 
 
 default:
-	g++ -c Vector3.cpp
-	g++ -c Color.cpp
-	g++ -c Ray.cpp
-	g++ -c Light.cpp
-	g++ -c Material.cpp
-	g++ -c Camera.cpp
-	g++ -c Scene.cpp
-	g++ -c main.cpp
-	g++ -o bin/rtx Vector3.o Color.o Ray.o Light.o Material.o Camera.o Scene.o main.o -lGL -lGLEW -lglut -lGLU
+	mkdir -p bin
+	for cppfile in *.cpp; do\
+		g++ -c $$cppfile;\
+	done
+	g++ -o bin/rtx *.o ${GLFLAGS}
 	rm *.o
 
 clean:
-	rm *.o bin/rtx
+	rm -rf bin/

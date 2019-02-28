@@ -58,7 +58,7 @@ void Scene::loadNFF(std::string filename){
         }
         else if(lin_proc.at(0) == std::string("f")){
             // change material
-            for(int i = 1; i != 10; i++){
+            for(int i = 1; i != 9; i++){
                 material[i - 1] = stof(lin_proc.at(i));
             }
         }
