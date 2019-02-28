@@ -115,7 +115,13 @@ void Scene::loadNFF(std::string filename){
                              stof(lin_proc.at(3)), stof(lin_proc.at(4))));
         }
         else if(lin_proc.at(0) == std::string("p")){
-            // TODO: polygon
+            std::vector<Vector3*> verts;
+            for(int i = 0; i != stof(lin_proc.at(1)); i++){
+                std::getline(nff, line);
+                std::vector<std::string> vert = tokenizeLine(line);
+                verts.push_back(new Vector3(stof(vert.at(0)), stof(vert.at(1)), stof(vert.at(2))));
+            }
+            // TODO: add to scene
         }
         else if(lin_proc.at(0) == std::string("pp")){
             // TODO: polygonal patch
@@ -132,6 +138,7 @@ void Scene::loadNFF(std::string filename){
                              stof(lin_proc.at(9))));
 
         }
+        else if(lin_proc.at(0) == std::string("#")) continue; // comment
     }
 }
 
