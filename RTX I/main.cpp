@@ -55,12 +55,12 @@ int WindowHandle = 0;
 ///////////////////////////////////////////////////////////////////////  RAY-TRACE SCENE
 
 Ray computePrimaryRay(float x, float y){
-	// TODO implement function
+	// TODO: implement function
 }
 
 Color rayTracing( Ray ray, int depth, float RefrIndex)
 {
-    // TODO implement RTX
+    // TODO: implement RTX
 }
 
 /////////////////////////////////////////////////////////////////////// ERRORS
@@ -227,9 +227,9 @@ void renderScene()
 	{
 		for (int x = 0; x < RES_X; x++)
 		{
-			// TODO implement these two
+			// TODO: implement these two
 			ray = computePrimaryRay(x, y);
-			// TODO dont leave this commented, please. line below commented is for testing
+			// TODO: dont leave this commented, please. line below commented is for testing
 			//color = rayTracing(ray, 1, 1.0 );
 			color = *(scene->getBGColor());
 
@@ -349,7 +349,7 @@ void init(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-    // TODO parse nff
+    // TODO: parse nff
 	scene = new Scene(std::string(NFF));
 	RES_X = scene->getCamera()->getResX();
 	RES_Y = scene->getCamera()->getResY();

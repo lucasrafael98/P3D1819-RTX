@@ -1,5 +1,4 @@
 #include "Scene.h"
-#include "Camera.h"
 
 std::vector<std::string> tokenizeLine(std::string line){
     std::vector<std::string> lin_proc;
@@ -10,7 +9,7 @@ std::vector<std::string> tokenizeLine(std::string line){
 }
 
 void Scene::loadNFF(std::string filename){
-    // TODO check syntax errors in NFF? lol
+    // TODO: check syntax errors in NFF? lol
     std::ifstream nff(filename);
     std::string line;
     // camera attrs
@@ -64,18 +63,36 @@ void Scene::loadNFF(std::string filename){
         }
         else if(lin_proc.at(0) == std::string("c")){
             // cone/cylinder
+            std::getline(nff, line);
+            std::vector<std::string> base = tokenizeLine(line);
+            std::getline(nff, line);
+            std::vector<std::string> apex = tokenizeLine(line);
+            this->_objects.push_back(
+                new Cone(material[0], material[1], material[2],
+                             material[3], material[4], material[5], 
+                             material[6], material[7],
+                             stof(base.at(1)), stof(base.at(2)), 
+                             stof(base.at(3)), stof(base.at(4)),
+                             stof(apex.at(1)), stof(apex.at(2)), 
+                             stof(apex.at(3)), stof(apex.at(4))));
         }
         else if(lin_proc.at(0) == std::string("s")){
             // sphere
+            this->_objects.push_back(
+                new Sphere(material[0], material[1], material[2],
+                             material[3], material[4], material[5], 
+                             material[6], material[7],
+                             stof(lin_proc.at(1)), stof(lin_proc.at(2)), 
+                             stof(lin_proc.at(3)), stof(lin_proc.at(4))));
         }
         else if(lin_proc.at(0) == std::string("p")){
-            // polygon
+            // TODO: polygon
         }
         else if(lin_proc.at(0) == std::string("pp")){
-            // polygonal patch
+            // TODO: polygonal patch
         }
         else if(lin_proc.at(0) == std::string("pl")){
-            // plane
+            // TODO: plane
         }
     }
 }
@@ -90,6 +107,8 @@ Scene::~Scene(){
     delete this->_bgColor;
     for(Light* l: this->_lights)
         delete l;
+    for(SceneObject* so: this->_objects)
+        delete so;
 }
 
 Camera* Scene::getCamera(){ return this->_camera; }

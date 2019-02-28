@@ -10,6 +10,9 @@
 #include "Color.h"
 #include "Vector3.h"
 #include "Light.h"
+#include "SceneObject.h"
+#include "Sphere.h"
+#include "Cone.h"
 
 class Scene{
 private:
@@ -17,6 +20,7 @@ private:
     Camera *_camera;
     Color* _bgColor;
     std::vector<Light*> _lights;
+    std::vector<SceneObject*> _objects;
 public:
 
     Scene(std::string filename);
