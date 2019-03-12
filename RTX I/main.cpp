@@ -56,11 +56,13 @@ int WindowHandle = 0;
 
 Ray computePrimaryRay(float x, float y){
 	// TODO: implement function
+	return Ray();
 }
 
 Color rayTracing( Ray ray, int depth, float RefrIndex)
 {
     // TODO: implement RTX
+	return Color(0, 0, 0);
 }
 
 /////////////////////////////////////////////////////////////////////// ERRORS
