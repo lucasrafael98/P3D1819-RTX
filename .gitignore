@@ -1,3 +1,9 @@
 .vscode
 *.o
+*.sln
+*.vcxproj
 RTX\ I/bin/rtx
+RTX\ I/x64
+RTX\ I/.vs
+*.vcxproj.filters
+*.vcxproj.user
