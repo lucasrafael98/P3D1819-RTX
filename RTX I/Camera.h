@@ -9,8 +9,8 @@
 
 class Camera{
 private:
-    Vector3 *_eye, *_at, *_up;
-    float _resx, _resy, _fov, _near;
+    Vector3 *_eye, *_at, *_up, *_xe, *_ye, *_ze;
+    float _resx, _resy, _fov, _near, _w, _h;
 public:
 
     Camera(float fromx, float fromy, float fromz,
@@ -28,7 +28,7 @@ public:
     float getFOV();
     float getNear();
     Vector3* computeFromAtAngle();
-    Vector3* computeRayDirection(float x, float y, float near);
+    Vector3* computeRayDirection(float x, float y);
 };
 
 #endif

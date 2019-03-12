@@ -56,7 +56,8 @@ int WindowHandle = 0;
 
 Ray computePrimaryRay(float x, float y){
 	Vector3 *rayOrigin = new Vector3(scene->getCamera()->getEye());
-	Vector3 *rayDirection = scene->getCamera()->computeRayDirection(x,y,scene->getCamera()->getNear());
+	rayOrigin->normalize();
+	Vector3 *rayDirection = scene->getCamera()->computeRayDirection(x,y);
 	return Ray(rayOrigin->getX(), rayOrigin->getY(), rayOrigin->getZ(),
 				rayDirection->getX(), rayDirection->getY(), rayDirection->getZ());
 }
@@ -86,7 +87,7 @@ Color getLighting(const SceneObject &object, const Vector3 &point, const Vector3
 	float specularIntensity = pow( std::max(0.0f, NdotH), shinniness );
 	Color specular = *(object.getMaterial()->getColor()) * *(light->getColor()) * specularIntensity * attenuate;
 
-	rayColor = diffuse * float(50) * object.getMaterial()->getDiffuse() + specular * object.getMaterial()->getSpecular();   
+	rayColor = diffuse * object.getMaterial()->getDiffuse() + specular * object.getMaterial()->getSpecular();   
 	return rayColor;
 }
 
@@ -108,19 +109,15 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 		}
 	}
 	if (!hit) {
-        if(depth < 1)
-          return *(scene->getBGColor());
-        else
-          return Color();
+        return *(scene->getBGColor());
     }
 	Vector3 hitPoint = *(ray.getOrigin()) + *(ray.getDirection()) * tnear;
 	Vector3 N = hit->getNormal(hitPoint);
 	N.normalize();
 	Vector3 V = *(scene->getCamera()->getEye()) - hitPoint;
 	V.normalize();
-	std::cout << scene->getObjectVector().size();
-	//rayColor = getLighting(*hit, hitPoint, N, V, scene->getLight(0));
-	rayColor = Color(1,1,0);
+	rayColor = getLighting(*hit, hitPoint, N, V, scene->getLight(0));
+	//rayColor = Color(1,1,0);
 	//TODO: how do we check if an object is transparent/reflective?
 	if( (hit->getMaterial()->getTransmittance() > 0 ||
 		 hit->getMaterial()->getRefractionIndex() > 0)
