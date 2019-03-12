@@ -15,6 +15,9 @@ public:
     Ray(float ox, float oy, float oz, float dx, float dy, float dz);
     ~Ray();
 
+    Vector3* getDirection();
+    Vector3* getOrigin();
+
 };
 
 #endif

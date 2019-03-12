@@ -9,3 +9,5 @@ Ray::Ray(float ox, float oy, float oz, float dx, float dy, float dz){
     this->_direction = new Vector3(dx,dy,dz);
 }
 Ray::~Ray(){}
+Vector3* Ray::getDirection(){ return this->_direction; }
+Vector3* Ray::getOrigin(){ return this->_direction; }

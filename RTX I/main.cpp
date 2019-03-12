@@ -55,14 +55,78 @@ int WindowHandle = 0;
 ///////////////////////////////////////////////////////////////////////  RAY-TRACE SCENE
 
 Ray computePrimaryRay(float x, float y){
-	// TODO: implement function
-	return Ray();
+	Vector3 *rayOrigin = new Vector3(scene->getCamera()->getEye());
+	Vector3 *rayDirection = scene->getCamera()->computeRayDirection(x,y,scene->getCamera()->getNear());
+	return Ray(rayOrigin->getX(), rayOrigin->getY(), rayOrigin->getZ(),
+				rayDirection->getX(), rayDirection->getY(), rayDirection->getZ());
+}
+
+Color getLighting(const SceneObject &object, const Vector3 &point, const Vector3 &normal, const Vector3 &view, const Light *light) {
+	Color rayColor;
+
+	// Create diffuse color
+	Vector3 N = normal;
+	
+	Vector3 L = *(light->getPosition()) - point;
+	float distance = L.length();
+	L.normalize();
+	float attenuate = light->attenuate(distance);
+
+	float NdotL = N.dot(L);
+	float intensity = std::max(0.0f, NdotL); 
+	Color diffuse = *(object.getMaterial()->getColor()) * *(light->getColor()) * intensity * attenuate;
+	
+	// Create specular color
+	Vector3 V = view;
+	Vector3 H = L + V;
+	H.normalize();
+
+	float shinniness = object.getMaterial()->getShininess();
+	float NdotH = N.dot(H);
+	float specularIntensity = pow( std::max(0.0f, NdotH), shinniness );
+	Color specular = *(object.getMaterial()->getColor()) * *(light->getColor()) * specularIntensity * attenuate;
+
+	rayColor = diffuse * float(50) * object.getMaterial()->getDiffuse() + specular * object.getMaterial()->getSpecular();   
+	return rayColor;
 }
 
 Color rayTracing( Ray ray, int depth, float RefrIndex)
 {
-    // TODO: implement RTX
-	return Color(0, 0, 0);
+    // TODO: implement epic RTX
+	Color rayColor;
+	std::vector<SceneObject*> objects = scene->getObjectVector();
+	float tnear = INFINITY;
+	SceneObject* hit = nullptr;
+	for(SceneObject* so: objects){
+		float t0 = INFINITY; float t1 = INFINITY;
+		if(so->intersect(ray, t0, t1)){
+			if (t0 < 0) t0 = t1;
+			if (t0 < tnear) {
+				tnear = t0;
+				hit = so;
+			}
+		}
+	}
+	if (!hit) {
+        if(depth < 1)
+          return *(scene->getBGColor());
+        else
+          return Color();
+    }
+	Vector3 hitPoint = *(ray.getOrigin()) + *(ray.getDirection()) * tnear;
+	Vector3 N = hit->getNormal(hitPoint);
+	N.normalize();
+	Vector3 V = *(scene->getCamera()->getEye()) - hitPoint;
+	V.normalize();
+	std::cout << scene->getObjectVector().size();
+	//rayColor = getLighting(*hit, hitPoint, N, V, scene->getLight(0));
+	rayColor = Color(1,1,0);
+	//TODO: how do we check if an object is transparent/reflective?
+	if( (hit->getMaterial()->getTransmittance() > 0 ||
+		 hit->getMaterial()->getRefractionIndex() > 0)
+		 && depth < MAX_DEPTH) {
+	}
+	return rayColor;
 }
 
 /////////////////////////////////////////////////////////////////////// ERRORS

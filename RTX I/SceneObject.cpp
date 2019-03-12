@@ -10,4 +10,4 @@ SceneObject::~SceneObject(){
     delete this->_mtl;
 }
 
-Material* SceneObject::getMaterial(){ return this->_mtl; }
+Material* SceneObject::getMaterial() const{ return this->_mtl; }

@@ -13,6 +13,10 @@ public:
     Light(float x, float y, float z, float r, float g, float b);
     ~Light();
 
+    Vector3* getPosition() const;
+    Color* getColor() const;
+    float attenuate(const float &r) const;
+
 };
 
 #endif

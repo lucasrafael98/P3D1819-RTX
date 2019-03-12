@@ -53,9 +53,9 @@ void Scene::loadNFF(std::string filename){
                                         atVec->getX(), atVec->getY(), atVec->getZ(),
                                         upVec->getX(),upVec->getY(),upVec->getZ(),
                                         resX, resY, camAngle, camHither);
-            std::cout << "=====CAMERA=====\nFROM\n" << this->_camera->getFrom()->getX() << "\t"
-                                             << this->_camera->getFrom()->getY() << "\t"
-                                             << this->_camera->getFrom()->getZ() << "\t\n"
+            std::cout << "=====CAMERA=====\nFROM\n" << this->_camera->getEye()->getX() << "\t"
+                                             << this->_camera->getEye()->getY() << "\t"
+                                             << this->_camera->getEye()->getZ() << "\t\n"
                         << "AT\n" << this->_camera->getAt()->getX() << "\t"
                                     << this->_camera->getAt()->getY() << "\t"
                                     << this->_camera->getAt()->getZ() << "\t\n"
@@ -63,8 +63,8 @@ void Scene::loadNFF(std::string filename){
                                     << this->_camera->getUp()->getY() << "\t"
                                     << this->_camera->getUp()->getZ() << "\t\n"
                         << "RESOLUTION\n" << this->_camera->getResX() << "by" << this->_camera->getResY() << "\n"
-                        << "ANGLE\t" << this->_camera->getAngle() << "\n"
-                        << "HITHER\t" << this->_camera->getHither() << "\n";
+                        << "FOV\t" << this->_camera->getFOV() << "\n"
+                        << "HITHER\t" << this->_camera->getNear() << "\n";
 
 
         }
@@ -172,3 +172,5 @@ Scene::~Scene(){
 Camera* Scene::getCamera(){ return this->_camera; }
 Color* Scene::getBGColor(){ return this->_bgColor; }
 Light* Scene::getLight(int i){ return this->_lights.at(i); }
+std::vector<Light*> Scene::getLights(){ return this->_lights; }
+std::vector<SceneObject*> Scene::getObjectVector(){ return this->_objects; }

@@ -16,6 +16,8 @@ public:
             float refidx, float x, float y, float z, float rad);
 
     float getRadius();
+    bool intersect(Ray ray, float& t0, float &t1) override;
+    Vector3 getNormal(const Vector3 &hitPoint) override;
 };
 
 #endif

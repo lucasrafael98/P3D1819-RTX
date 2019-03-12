@@ -32,6 +32,8 @@ public:
     Camera* getCamera();
     Color* getBGColor();
     Light* getLight(int i);
+    std::vector<Light*> getLights();
+    std::vector<SceneObject*> getObjectVector();
 
 };
 

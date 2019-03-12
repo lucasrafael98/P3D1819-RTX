@@ -1,6 +1,8 @@
 #ifndef VECTOR3_H
 #define VECTOR3_H
 
+#include <cmath>
+
 class Vector3{
 private:
     float _x;
@@ -9,11 +11,28 @@ private:
 
 public:
     Vector3(float x, float y, float z);
+    Vector3(Vector3* vec3);
     ~Vector3(){}
 
-    float getX();
-    float getY();
-    float getZ();
+    float getX() const;
+    float getY() const;
+    float getZ() const;
+
+    void rotateX(float angle);
+    void rotateY(float angle);
+    void rotateZ(float angle);
+    void normalize();
+    float dot(const Vector3 &v) const { return this->_x * v.getX() + this->_y * v.getY() + this->_z * v.getZ(); }
+    Vector3 operator - () const { return Vector3(-this->_x, -this->_y, -this->_z); }
+    Vector3 operator + (const float &f) const { return Vector3(this->_x + f, this->_y + f, this->_z + f); }
+    Vector3 operator - (const float &f) const { return Vector3(this->_x - f, this->_y - f, this->_z - f); }
+    Vector3 operator * (const float &f) const { return Vector3(this->_x * f, this->_y * f, this->_z * f); }
+    Vector3 operator / (const float &f) const { return Vector3(this->_x / f, this->_y / f, this->_z / f); }
+    Vector3 operator + (const Vector3 &v) const { return Vector3(this->_x + v.getX(), this->_y + v.getY(), this->_z + v.getZ()); }
+    Vector3 operator - (const Vector3 &v) const { return Vector3(this->_x - v.getX(), this->_y - v.getY(), this->_z - v.getZ()); }
+    Vector3 operator * (const Vector3 &v)  const { return Vector3(this->_x * v.getX(), this->_y * v.getY(), this->_z * v.getZ()); }
+    float length2() const { return this->_x * this->_x + this->_y * this->_y + this->_z * this->_z; }
+    float length() const { return sqrt(length2()); }
 };
 
 #endif

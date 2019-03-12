@@ -12,6 +12,6 @@ Color::Color(float r, float g, float b){
 }
 Color::~Color(){}
 
-float Color::getR(){return this->_r;}
-float Color::getG(){return this->_g;}
-float Color::getB(){return this->_b;}
+float Color::getR() const {return this->_r;}
+float Color::getG() const {return this->_g;}
+float Color::getB() const {return this->_b;}
