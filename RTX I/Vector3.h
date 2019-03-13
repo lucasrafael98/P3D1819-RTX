@@ -2,6 +2,8 @@
 #define VECTOR3_H
 
 #include <cmath>
+// for some intersection tests (defined in vec3 because it's included everywhere).
+#define EPSILON 0.0000001f
 
 class Vector3{
 private:

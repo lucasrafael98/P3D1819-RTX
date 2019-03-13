@@ -29,7 +29,7 @@ Vector3 Plane::getNormal(const Vector3 &hitPoint){ return *(this->_normal); }
 
 bool Plane::intersect(Ray ray, float& ti){
     float nd = this->_normal->dot(*(ray.getDirection()));
-    if(fabs(nd) < 0.0001f) return false;
+    if(fabs(nd) < EPSILON) return false;
 
     float t = - (*(ray.getOrigin()) - *(this->_pos1)).dot(*(this->_normal)) / nd;
     if(t < 0.0f) return false;
