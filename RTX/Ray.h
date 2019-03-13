@@ -13,6 +13,7 @@ public:
 
     Ray();
     Ray(float ox, float oy, float oz, float dx, float dy, float dz);
+    Ray(Vector3 origin, Vector3 direction);
     ~Ray();
 
     Vector3* getDirection();

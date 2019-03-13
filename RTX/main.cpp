@@ -28,7 +28,7 @@
 
 #define MAX_DEPTH 6
 
-#define NFF "NFF/ex1.nff"
+#define NFF "NFF/balls_medium.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
@@ -113,6 +113,7 @@ Color getLighting(const SceneObject &object, const Vector3 *point, const Vector3
 	Color specular = *(object.getMaterial()->getColor()) * *(light->getColor()) * specularIntensity * attenuate;
 
 	rayColor = diffuse * object.getMaterial()->getDiffuse() + specular * object.getMaterial()->getSpecular();
+
 	return rayColor;
 }
 
@@ -130,7 +131,7 @@ Color getMLighting(const SceneObject &object, const Vector3 *point, const Vector
 
 Color rayTracing( Ray ray, int depth, float RefrIndex)
 {
-    // TODO: implement epic RTX
+	if(depth > MAX_DEPTH) return *(scene->getBGColor());
 	Color rayColor;
 	std::vector<SceneObject*> objects = scene->getObjectVector();
 	float tnear = INFINITY;
@@ -153,6 +154,27 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 	Vector3 V = *(scene->getCamera()->getEye()) - hitPoint;
 	V.normalize();
 	rayColor = getMLighting(*hit, &hitPoint, N, V, scene->getLights(), scene->getObjectVector());
+
+	bool inside = false;
+	if(ray.getDirection()->dot(N) > 0){
+		N = -N;
+		inside = true;
+	}
+	// If there's Ks, material is reflective.
+	if(hit->getMaterial()->getSpecular() > 0){
+		Vector3 R = *(ray.getDirection()) - N * 2 * ray.getDirection()->dot(N);
+		R.normalize();
+
+		Ray rRay(hitPoint + N * 0.0001f, R);
+		float VdotR =  std::max(0.0f, V.dot(-R));
+        Color reflectionColor = rayTracing(rRay,  depth + 1, hit->getMaterial()->getRefractionIndex()); //* VdotR;
+		rayColor = rayColor + reflectionColor * hit->getMaterial()->getSpecular();
+	}
+	// If there's transmittance, material is transparent.
+	if(hit->getMaterial()->getTransmittance() > 0){
+
+	}
+
 	return rayColor;
 }
 
