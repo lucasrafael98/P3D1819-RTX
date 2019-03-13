@@ -24,6 +24,7 @@ public:
     Color operator * (Vector3 f) const { return Color(this->_r * f.getX(), this->_g * f.getY(), this->_b * f.getZ()); }
     Color operator * (Color c) const { return Color(this->_r * c.getR(), this->_g * c.getG(), this->_b * c.getB()); }
     Color operator + (Color c) const { return Color(this->_r + c.getR(), this->_g + c.getG(), this->_b + c.getB()); } 
+	Color operator - (Color c) const { return Color(this->_r - c.getR(), this->_g - c.getG(), this->_b - c.getB()); }
 
 };
 
