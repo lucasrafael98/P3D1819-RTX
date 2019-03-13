@@ -8,7 +8,7 @@ Sphere::Sphere(float r, float g, float b, float diff,
         std::cout << x << y << z << rad << std::endl;
     }
 
-bool Sphere::intersect(Ray ray, float& t0, float &t1){
+bool Sphere::intersect(Ray ray, float& ti){
     ray.getDirection()->normalize();
     float d2 = (*(this->_pos) - *(ray.getOrigin())).length2();
     float b = ray.getDirection()->getX() * (this->_pos->getX() - ray.getOrigin()->getX())
@@ -19,8 +19,9 @@ bool Sphere::intersect(Ray ray, float& t0, float &t1){
     float r = pow(b, 2) - d2 + pow(this->_radius, 2);
     if(r < 0) return false;
     //std::cout << "HIT";
-    t0 = b - sqrt(r);
-    t1 = b + sqrt(r);
+    ti = b - sqrt(r);
+    if(ti < 0.0f)
+        ti = b + sqrt(r);
     return true;
 }
 Vector3 Sphere::getNormal(const Vector3 &hitPoint){

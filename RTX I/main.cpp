@@ -138,11 +138,10 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 	float tnear = INFINITY;
 	SceneObject* hit = nullptr;
 	for(SceneObject* so: objects){
-		float t0 = INFINITY; float t1 = INFINITY;
-		if(so->intersect(ray, t0, t1)){
-			if (t0 < 0) t0 = t1;
-			if (t0 < tnear) {
-				tnear = t0;
+		float ti = INFINITY;
+		if(so->intersect(ray, ti)){
+			if (ti < tnear) {
+				tnear = ti;
 				hit = so;
 			}
 		}
