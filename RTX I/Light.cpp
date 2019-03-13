@@ -17,4 +17,4 @@ Light::~Light(){
 
 Vector3* Light::getPosition() const{ return this->_pos; }
 Color* Light::getColor() const{ return this->_color; }
-float Light::attenuate(const float &r) const { return 1.0 / (r * r); }
+float Light::attenuate(const float &r) const { return 1.0; }

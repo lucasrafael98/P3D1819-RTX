@@ -65,17 +65,16 @@ Ray computePrimaryRay(float x, float y){
 static bool getShadow(const Vector3 *point, const Light *light, const std::vector<SceneObject*> &objects) {
 	Vector3 shadowRayDirection = *(light->getPosition()) - *point;
 	shadowRayDirection.normalize();
-	Ray shadowRay(point->getX(), point->getY(), point->getZ(), shadowRayDirection.getX(), shadowRayDirection.getY(), shadowRayDirection.getZ());
+	// 0.0001f to avoid self-intersection
+	Vector3 shadowRayOrigin = *point + *(light->getPosition()) * 0.0001f;
+	Ray shadowRay(shadowRayOrigin.getX(), shadowRayOrigin.getY(), shadowRayOrigin.getZ(), 
+				shadowRayDirection.getX(), shadowRayDirection.getY(), shadowRayDirection.getZ());
 
-	bool isInShadow = false;
 	for (int j = 0; j < objects.size(); j++) {
-		float t0 = INFINITY; float t1 = INFINITY;
-		if (objects[j]->intersect(shadowRay, t0, t1)) {
-			isInShadow = true;
-			break;
-		}
+		float ti = INFINITY;
+		if (objects[j]->intersect(shadowRay, ti)) return true;
 	}
-	return isInShadow;
+	return false;
 }
 
 static float getShadowFactor(const Vector3 *point, const Light *light, const std::vector<SceneObject*> &objects) {
@@ -108,19 +107,18 @@ Color getLighting(const SceneObject &object, const Vector3 *point, const Vector3
 	Vector3 H = L + V;
 	H.normalize();
 
-	float shinniness = object.getMaterial()->getShininess();
+	float shininess = object.getMaterial()->getShininess();
 	float NdotH = N.dot(H);
-	float specularIntensity = pow(std::max(0.0f, NdotH), shinniness);
+	float specularIntensity = pow(std::max(0.0f, NdotH), shininess);
 	Color specular = *(object.getMaterial()->getColor()) * *(light->getColor()) * specularIntensity * attenuate;
 
-	rayColor = diffuse * 50.0f * object.getMaterial()->getDiffuse() + specular * object.getMaterial()->getSpecular();
+	rayColor = diffuse * object.getMaterial()->getDiffuse() + specular * object.getMaterial()->getSpecular();
 	return rayColor;
 }
 
-Color getMLighting(const SceneObject &object, const Vector3 *point, const Vector3 &normal, const Vector3 &view, const std::vector<Light*> &lights, const std::vector<SceneObject*> &objects) {
-	Color ambient = *(object.getMaterial()->getColor());
-	Color rayColor = ambient * object.getMaterial()->getDiffuse();
-
+Color getMLighting(const SceneObject &object, const Vector3 *point, const Vector3 &normal, const Vector3 &view,
+					 const std::vector<Light*> &lights, const std::vector<SceneObject*> &objects) {
+	Color rayColor;
 	// Compute illumination with shadows
 	for (int i = 0; i < lights.size(); i++) {
 		float shadowFactor = getShadowFactor(point, lights[i], objects);
@@ -154,7 +152,7 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 	N.normalize();
 	Vector3 V = *(scene->getCamera()->getEye()) - hitPoint;
 	V.normalize();
-	rayColor = getLighting(*hit, &hitPoint, N, V, scene->getLight(0));
+	rayColor = getMLighting(*hit, &hitPoint, N, V, scene->getLights(), scene->getObjectVector());
 	return rayColor;
 }
 

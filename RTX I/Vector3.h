@@ -1,10 +1,10 @@
 #ifndef VECTOR3_H
 #define VECTOR3_H
 
+#define _USE_MATH_DEFINES
 #include <cmath>
 // for some intersection tests (defined in vec3 because it's included everywhere).
 #define EPSILON 0.0000001f
-#define M_PI 3.14159265359
 
 class Vector3{
 private:
