@@ -2,10 +2,10 @@
 *.o
 *.sln
 *.vcxproj
-RTX\ I/bin/rtx
-RTX\ I/x64
-RTX\ I/.vs
+RTX/bin/rtx
+RTX/x64
+RTX/.vs
 *.vcxproj.filters
 *.vcxproj.user
-RTX\ I/NFF/balls_*
-RTX\ I/NFF/mount_*
+RTX/NFF/balls_*
+RTX/NFF/mount_*

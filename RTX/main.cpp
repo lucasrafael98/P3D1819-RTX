@@ -21,7 +21,7 @@
 #include "Ray.h"
 #include "Camera.h"
 
-#define CAPTION "RTX ON"
+#define CAPTION "EPIC RTX LOADING..."
 
 #define VERTEX_COORD_ATTRIB 0
 #define COLOR_ATTRIB 1
