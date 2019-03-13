@@ -6,7 +6,7 @@
 
 class Plane: public SceneObject{
 private:
-    Vector3 *_pos1, *_pos2, *_pos3;
+    Vector3 *_pos1, *_pos2, *_pos3, *_normal;
 public:
     Plane(float r, float g, float b, float diff,
         float spec, float shine, float transm,
@@ -17,6 +17,8 @@ public:
     Vector3* getPos1();
     Vector3* getPos2();
     Vector3* getPos3();
+    bool intersect(Ray ray, float& ti) override;
+    Vector3 getNormal(const Vector3 &hitPoint) override;
 };
 
 #endif
