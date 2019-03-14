@@ -28,7 +28,7 @@
 
 #define MAX_DEPTH 6
 
-#define NFF "NFF/balls_medium.nff"
+#define NFF "NFF/ex1.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
