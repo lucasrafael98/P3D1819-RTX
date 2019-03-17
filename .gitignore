@@ -5,6 +5,7 @@
 RTX/bin/rtx
 RTX/x64
 RTX/.vs
+/.vs
 *.vcxproj.filters
 *.vcxproj.user
 RTX/NFF/balls_*

@@ -28,7 +28,7 @@
 
 #define MAX_DEPTH 6
 
-#define NFF "NFF/ex1.nff"
+#define NFF "NFF/mount_low.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
@@ -156,10 +156,20 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 	rayColor = getMLighting(*hit, &hitPoint, N, V, scene->getLights(), scene->getObjectVector());
 
 	bool inside = false;
-	if(ray.getDirection()->dot(N) > 0){
+	float RdotN = ray.getDirection()->dot(N);
+	float rIndexBefore = 1.0; //not sure about this one...
+	float rIndexDest = hit->getMaterial()->getRefractionIndex();
+	if(RdotN > 0){ //inside, swap refraction index
 		N = -N;
 		inside = true;
+		float rTemp = rIndexBefore;
+		rIndexBefore = rIndexDest;
+		rIndexDest = rTemp;
 	}
+	else { //outside
+		RdotN = -RdotN;
+	}
+	   
 	// If there's Ks, material is reflective.
 	if(hit->getMaterial()->getSpecular() > 0){
 		Vector3 R = *(ray.getDirection()) - N * 2 * ray.getDirection()->dot(N);
@@ -170,9 +180,23 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
         Color reflectionColor = rayTracing(rRay,  depth + 1, hit->getMaterial()->getRefractionIndex()); //* VdotR;
 		rayColor = rayColor + reflectionColor * hit->getMaterial()->getSpecular();
 	}
+
 	// If there's transmittance, material is transparent.
 	if(hit->getMaterial()->getTransmittance() > 0){
+		
+		
+		float snellResult = rIndexBefore / rIndexDest; //snell law
+		float totalInternalReflectionFactor = (1 - snellResult * snellResult * (1 - RdotN * RdotN));
 
+		if (!(totalInternalReflectionFactor < 0)) { //its not a total internal reflection
+			Vector3 R = *(ray.getDirection()) * snellResult + N * (snellResult * RdotN - sqrt(totalInternalReflectionFactor));
+			R.normalize();
+
+			Ray rRay(hitPoint - N * 0.0001f, R);
+			Color refractionColor = rayTracing(rRay, depth + 1, hit->getMaterial()->getRefractionIndex());
+
+			rayColor = rayColor + refractionColor * hit->getMaterial()->getTransmittance();
+		}
 	}
 
 	return rayColor;
