@@ -28,7 +28,7 @@
 
 #define MAX_DEPTH 6
 
-#define NFF "NFF/aabb.nff"
+#define NFF "NFF/aabb_refrac.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
@@ -113,7 +113,7 @@ Color getLighting(const SceneObject &object, const Vector3 *point, const Vector3
 	Color specular = *(object.getMaterial()->getColor()) * *(light->getColor()) * specularIntensity * attenuate;
 
 	rayColor = diffuse * object.getMaterial()->getDiffuse() + specular * object.getMaterial()->getSpecular();
-
+	//std::cout << rayColor.getR() << " " << rayColor.getG() << " " << rayColor.getB() << std::endl;
 	return rayColor;
 }
 
@@ -125,7 +125,7 @@ Color getMLighting(const SceneObject &object, const Vector3 *point, const Vector
 		float shadowFactor = getShadowFactor(point, lights[i], objects);
 		rayColor = rayColor + getLighting(object, point, normal, view, lights[i]) * (1.0 - shadowFactor);
 	}
-
+	
 	return rayColor;
 }
 
@@ -151,7 +151,6 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 	Vector3 hitPoint = *(ray.getOrigin()) + *(ray.getDirection()) * tnear;
 	Vector3 N = hit->getNormal(hitPoint);
 	N.normalize();
-	//std::cout << N.getX() << " " << N.getY() << " " << N.getZ();
 	Vector3 V = *(scene->getCamera()->getEye()) - hitPoint;
 	V.normalize();
 	rayColor = getMLighting(*hit, &hitPoint, N, V, scene->getLights(), scene->getObjectVector());
