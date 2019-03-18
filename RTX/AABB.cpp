@@ -11,62 +11,27 @@ AABB::AABB(float r, float g, float b, float diff,
 
 bool AABB::intersect(Ray ray, float& ti) {
 	ray.getDirection()->normalize();
-	double ox = ray.getOrigin()->getX(); double oy = ray.getOrigin()->getY(); double oz = ray.getOrigin()->getZ();
-	double dx = ray.getDirection()->getX(); double dy = ray.getDirection()->getY(); double dz = ray.getDirection()->getZ();
 
-	double tx_min, ty_min, tz_min;
-	double tx_max, ty_max, tz_max;
+	Vector3 tMin = new Vector3((this->_x0 - ray.getOrigin()->getX()) / ray.getDirection()->getX(),
+		(this->_y0 - ray.getOrigin()->getY()) / ray.getDirection()->getY(),
+		(this->_z0 - ray.getOrigin()->getZ()) / ray.getDirection()->getZ());
 
-	double a = 1.0 / dx;
-	if (a >= 0) {
-		tx_min = (this->_x0 - ox) * a;
-		tx_max = (this->_x1 - ox) * a;
-	}
-	else {
-		tx_min = (this->_x1 - ox) * a;
-		tx_max = (this->_x0 - ox) * a;
-	}
+	Vector3 tMax = new Vector3((this->_x1 - ray.getOrigin()->getX()) / ray.getDirection()->getX(),
+		(this->_y1 - ray.getOrigin()->getY()) / ray.getDirection()->getY(),
+		(this->_z1 - ray.getOrigin()->getZ()) / ray.getDirection()->getZ());
 
-	double b = 1.0 / dx;
-	if (b >= 0) {
-		ty_min = (this->_y0 - oy) * b;
-		ty_max = (this->_y1 - oy) * b;
-	}
-	else {
-		ty_min = (this->_y1 - oy) * b;
-		ty_max = (this->_y0 - oy) * b;
-	}
+	Vector3 t1 = new Vector3(std::min(tMin.getX(), tMax.getX()),
+		std::min(tMin.getY(), tMax.getY()),
+		std::min(tMin.getZ(), tMax.getZ()));
+	Vector3 t2 = new Vector3(std::max(tMin.getX(), tMax.getX()),
+		std::max(tMin.getY(), tMax.getY()),
+		std::max(tMin.getZ(), tMax.getZ()));
 
-	double c = 1.0 / dz;
-	if (c >= 0) {
-		tz_min = (this->_z0 - oz) * c;
-		tz_max = (this->_z1 - oz) * c;
-	}
-	else {
-		tz_min = (this->_z1 - oz) * c;
-		tz_max = (this->_z0 - oz) * c;
-	}
+	float tNear = std::max(std::max(t1.getX(), t1.getY()), t1.getZ());
+	float tFar = std::min(std::min(t2.getX(), t2.getY()), t2.getZ());
 
-	double t0, t1;
-
-	if (tx_min > ty_min)
-		t0 = tx_min;
-	else
-		t0 = ty_min;
-
-	if (tz_min > t0)
-		t0 = tz_min;
-
-	if (tx_max < ty_max)
-		t1 = tx_max;
-	else
-		t1 = ty_max;
-
-	if (tz_max < t1)
-		t1 = tz_max;
-
-	ti = t0;
-	return (t0 < t1 && t1 > 0.00001f); //kEpsilon??
+	ti = tNear;
+	return tNear < tFar;
 }
 Vector3 AABB::getNormal(const Vector3 &hitPoint) { 
 	Vector3 c = new Vector3(this->_x0 + this->_x1, this->_y0 + this->_y1, this->_z0 + this->_z1);
@@ -76,10 +41,24 @@ Vector3 AABB::getNormal(const Vector3 &hitPoint) {
 	d = d * 0.5;
 	float bias = 1.01f;
 
-	Vector3 normal = new Vector3(float(int((point.getX() / abs(d.getX()) * bias))),
-		float(int((point.getY() / abs(d.getY()) * bias))),
-			float(int((point.getZ() / abs(d.getZ()) * bias))));
-	normal.normalize();
+	if (hitPoint.getX() > this->_x0 && hitPoint.getX() < this->_x1) {
+		if (hitPoint.getZ() == this->_z0)
+			return new Vector3(0.0f, 0.0f, -1.0f);
+		else if (hitPoint.getZ() == this->_z1)
+			return new Vector3(0.0f, 0.0f, 1.0f);
+	}	
+	else if (hitPoint.getY() > this->_y0 && hitPoint.getY() < this->_y1) {
+			if (hitPoint.getX() == this->_x0)
+				return new Vector3(-1.0f, 0.0f, 0.0f);
+			else if (hitPoint.getX() == this->_x1)
+				return new Vector3(1.0f, 0.0f, 0.0f);
+	}	
+	else if (hitPoint.getZ() > this->_z0 && hitPoint.getZ() < this->_z1) {
+			if (hitPoint.getY() == this->_y0)
+				return new Vector3(0.0f, 1.0f, 0.0f);
+			else if (hitPoint.getY() == this->_y1)
+				return new Vector3(0.0f, -1.0f, 0.0f);
+	}
 
-	return normal;
+	return new Vector3(0.0f, 1.0f, 0.0f);
 }

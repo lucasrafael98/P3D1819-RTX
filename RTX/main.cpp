@@ -139,8 +139,6 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 	for(SceneObject* so: objects){
 		float ti = INFINITY;
 		if(so->intersect(ray, ti)){
-			std::cout << so->getMaterial()->getDiffuse();
-			//std::cout << "oi";
 			if (ti < tnear) {
 				tnear = ti;
 				hit = so;
@@ -153,6 +151,7 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 	Vector3 hitPoint = *(ray.getOrigin()) + *(ray.getDirection()) * tnear;
 	Vector3 N = hit->getNormal(hitPoint);
 	N.normalize();
+	//std::cout << N.getX() << " " << N.getY() << " " << N.getZ();
 	Vector3 V = *(scene->getCamera()->getEye()) - hitPoint;
 	V.normalize();
 	rayColor = getMLighting(*hit, &hitPoint, N, V, scene->getLights(), scene->getObjectVector());

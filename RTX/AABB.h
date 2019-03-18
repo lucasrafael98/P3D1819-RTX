@@ -3,6 +3,7 @@
 
 #include "SceneObject.h"
 #include "Vector3.h"
+#include <algorithm>    // std::max min
 
 class AABB :public SceneObject {
 private:
