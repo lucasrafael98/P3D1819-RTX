@@ -152,6 +152,16 @@ void Scene::loadNFF(std::string filename){
                              stof(lin_proc.at(9))));
 
         }
+		else if (lin_proc.at(0) == std::string("aabb")) {
+		// aabb
+		this->_objects.push_back(
+			new AABB(material[0], material[1], material[2],
+				material[3], material[4], material[5],
+				material[6], material[7],
+				stof(lin_proc.at(1)), stof(lin_proc.at(2)),
+				stof(lin_proc.at(3)), stof(lin_proc.at(4)),
+				stof(lin_proc.at(5)), stof(lin_proc.at(6))));
+		}
         else if(lin_proc.at(0) == std::string("#")) continue; // comment
     }
 }

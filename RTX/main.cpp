@@ -28,7 +28,7 @@
 
 #define MAX_DEPTH 6
 
-#define NFF "NFF/mount_low.nff"
+#define NFF "NFF/aabb.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
@@ -139,6 +139,8 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 	for(SceneObject* so: objects){
 		float ti = INFINITY;
 		if(so->intersect(ray, ti)){
+			std::cout << so->getMaterial()->getDiffuse();
+			//std::cout << "oi";
 			if (ti < tnear) {
 				tnear = ti;
 				hit = so;

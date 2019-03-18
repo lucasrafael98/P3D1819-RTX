@@ -16,6 +16,7 @@
 #include "Plane.h"
 #include "Polygon.h"
 #include "PolyPlane.h"
+#include "AABB.h"
 
 class Scene{
 private:
