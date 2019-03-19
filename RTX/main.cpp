@@ -28,7 +28,7 @@
 
 #define MAX_DEPTH 6
 
-#define NFF "NFF/aabb_scene.nff"
+#define NFF "NFF/mount_low.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
@@ -189,11 +189,11 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 		float totalInternalReflectionFactor = (1 - snellResult * snellResult * (1 - RdotN * RdotN));
 
 		if (!(totalInternalReflectionFactor < 0)) { //its not a total internal reflection
-			Vector3 R = *(ray.getDirection()) * snellResult + N * (snellResult * RdotN - sqrt(totalInternalReflectionFactor));
+			Vector3 R = (*(ray.getDirection()) * snellResult) + (N * (snellResult * RdotN - sqrt(totalInternalReflectionFactor)));
 			R.normalize();
 
-			Ray rRay(hitPoint - N * 0.0001f, R);
-			Color refractionColor = rayTracing(rRay, depth + 1, hit->getMaterial()->getRefractionIndex());
+			Ray rRay(hitPoint + R * 0.0001f, R);
+			Color refractionColor = rayTracing(rRay, depth + 1, rIndexDest);
 
 			rayColor = rayColor + refractionColor * hit->getMaterial()->getTransmittance();
 		}
@@ -366,7 +366,6 @@ void renderScene()
 	{
 		for (int x = 0; x < RES_X; x++)
 		{
-			// TODO: implement these two
 			ray = computePrimaryRay(x, y);
 			color = rayTracing(ray, 1, 1.0 );
 
@@ -486,7 +485,6 @@ void init(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-    // TODO: parse nff
 	scene = new Scene(std::string(NFF));
 	RES_X = scene->getCamera()->getResX();
 	RES_Y = scene->getCamera()->getResY();
