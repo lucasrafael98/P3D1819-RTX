@@ -9,7 +9,6 @@ std::vector<std::string> tokenizeLine(std::string line){
 }
 
 void Scene::loadNFF(std::string filename){
-    // TODO: check syntax errors in NFF? lol
     std::ifstream nff(filename);
     std::string line;
     // camera attrs
