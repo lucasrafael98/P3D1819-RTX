@@ -12,7 +12,7 @@ public:
     SceneObject(float r, float g, float b, float diff,
                  float spec, float shine, float transm,
                  float refidx);
-    ~SceneObject();
+    virtual ~SceneObject();
     Material* getMaterial() const;
     // TODO: these should be overriden, but it's "implemented" so the linker stops complaining. Remove later.
     virtual bool intersect(Ray ray, float& ti){ return false; }

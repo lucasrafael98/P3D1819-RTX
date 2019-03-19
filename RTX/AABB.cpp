@@ -94,7 +94,7 @@ bool AABB::intersect(Ray ray, float& ti) {
 	return (t0 < t1 && t1 > EPSILON);
 }
 Vector3 AABB::getNormal(const Vector3 &hitPoint) { 
-	/* //n funciona direito pq Z afinal é altura e não Y, e acho que X cresce para o outro lado... é preciso arranjar as coordenadas como deve ser
+	/* //n funciona direito pq Z afinal ï¿½ altura e nï¿½o Y, e acho que X cresce para o outro lado... ï¿½ preciso arranjar as coordenadas como deve ser
 	if (hitPoint.getZ() - this->_z0 < 0.01f) {
 		//edge normals? do they even exist?
 		if (hitPoint.getY() - this->_y0 < 0.01f) return new Vector3(0.0f, -1.0f, -1.0f);
@@ -147,17 +147,16 @@ Vector3 AABB::getNormal(const Vector3 &hitPoint) {
 	}
 
 	return new Vector3(0.0f, 1.0f, 0.0f);*/
-
-	Vector3 c = new Vector3(this->_x0 + this->_x1, this->_y0 + this->_y1, this->_z0 + this->_z1);
+	Vector3 c = Vector3(this->_x0 + this->_x1, this->_y0 + this->_y1, this->_z0 + this->_z1);
 	c = c * 0.5;
 	Vector3 point = hitPoint - c;
-	Vector3 d = new Vector3(this->_x0 - this->_x1, this->_y0 - this->_y1, this->_z0 - this->_z1);
+	Vector3 d = Vector3(this->_x0 - this->_x1, this->_y0 - this->_y1, this->_z0 - this->_z1);
 	d = d * 0.5;
 	float bias = 1.000001f;
 
-	Vector3 normal = new Vector3(float(int((point.getX() / abs(d.getX()) * bias))),
-		float(int((point.getY() / abs(d.getY()) * bias))),
-		float(int((point.getZ() / abs(d.getZ()) * bias))));
+	Vector3 normal = Vector3(float(int(point.getX() / fabsf(d.getX()) * bias)),
+								float(int(point.getY() / fabsf(d.getY()) * bias)),
+								float(int(point.getZ() / fabsf(d.getZ()) * bias)));
 	normal.normalize();
 
 	return normal;
