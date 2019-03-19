@@ -21,6 +21,12 @@ public:
     Vector3* getBasePosition();
     float getApexRadius();
     float getBaseRadius();
+	float height() {
+		Vector3 distance = *(this->_apexPos) - *(this->_basePos);
+		return distance.length();
+	}
+	bool intersect(Ray ray, float& ti) override;
+	Vector3 getNormal(const Vector3 &hitPoint) override;
 };
 
 #endif
