@@ -100,10 +100,10 @@ void Scene::loadNFF(std::string filename){
                 new Cone(material[0], material[1], material[2],
                              material[3], material[4], material[5], 
                              material[6], material[7],
-                             stof(base.at(1)), stof(base.at(2)), 
-                             stof(base.at(3)), stof(base.at(4)),
-                             stof(apex.at(1)), stof(apex.at(2)), 
-                             stof(apex.at(3)), stof(apex.at(4))));
+                             stof(base.at(0)), stof(base.at(1)), 
+                             stof(base.at(2)), stof(base.at(3)),
+                             stof(apex.at(0)), stof(apex.at(1)), 
+                             stof(apex.at(2)), stof(apex.at(3))));
         }
         else if(lin_proc.at(0) == std::string("s")){
             // sphere
