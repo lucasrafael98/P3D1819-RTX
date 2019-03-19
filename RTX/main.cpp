@@ -28,7 +28,7 @@
 
 #define MAX_DEPTH 6
 
-#define NFF "NFF/cone2.nff"
+#define NFF "NFF/aabb_refrac.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
@@ -155,19 +155,16 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 	V.normalize();
 	rayColor = getMLighting(*hit, &hitPoint, N, V, scene->getLights(), scene->getObjectVector());
 
-	bool inside = false;
-	float RdotN = ray.getDirection()->dot(N);
-	float rIndexBefore = 1.0; //not sure about this one...
-	float rIndexDest = hit->getMaterial()->getRefractionIndex();
-	if(RdotN > 0){ //inside, swap refraction index
+	Vector3 dir = *(ray.getDirection());
+	float RdotN = dir.dot(N);
+	float rIndexBefore = RefrIndex; //not sure about this one...
+	float rIndexDest = 1.0;
+	if(RefrIndex != 1.0){ //inside, swap refraction index
 		N = -N;
-		inside = true;
-		float rTemp = rIndexBefore;
-		rIndexBefore = rIndexDest;
-		rIndexDest = rTemp;
 	}
 	else { //outside
 		RdotN = -RdotN;
+		rIndexDest = hit->getMaterial()->getRefractionIndex();
 	}
 	   
 	// If there's Ks, material is reflective.
@@ -177,7 +174,7 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 
 		Ray rRay(hitPoint + N * 0.0001f, R);
 		float VdotR =  std::max(0.0f, V.dot(-R));
-        Color reflectionColor = rayTracing(rRay,  depth + 1, hit->getMaterial()->getRefractionIndex()); //* VdotR;
+        Color reflectionColor = rayTracing(rRay,  depth + 1, RefrIndex); //* VdotR;
 		rayColor = rayColor + reflectionColor * hit->getMaterial()->getSpecular();
 	}
 
@@ -186,7 +183,7 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 		
 		
 		float snellResult = rIndexBefore / rIndexDest; //snell law
-		float totalInternalReflectionFactor = (1 - snellResult * snellResult * (1 - RdotN * RdotN));
+		float totalInternalReflectionFactor = (1 - pow(snellResult, 2) * (1 - pow(RdotN, 2)));
 
 		if (!(totalInternalReflectionFactor < 0)) { //its not a total internal reflection
 			Vector3 R = (*(ray.getDirection()) * snellResult) + (N * (snellResult * RdotN - sqrt(totalInternalReflectionFactor)));
@@ -381,7 +378,7 @@ void renderScene()
 				index_col=0;
 			}
 		}
-		printf("lineno %d; ", y);
+		//printf("lineno %d; ", y);
 		if(draw_mode == 1) {  // desenhar o conteudo da janela linha a linha
 				drawPoints();
 				index_pos=0;
