@@ -53,11 +53,8 @@ bool Cone::intersect(Ray ray, float& ti)
 
 Vector3 Cone::getNormal(const Vector3 &hitPoint)
 {
-	Vector3 distance = *(this->_apexPos) - *(this->_basePos);
-	float height = distance.length();
-
 	float r = sqrt((hitPoint.getX() - this->_basePos->getX())*(hitPoint.getX() - this->_basePos->getX()) + (hitPoint.getZ() - this->_basePos->getZ())*(hitPoint.getZ() - this->_basePos->getZ()));
-	Vector3 n = Vector3(hitPoint.getX() - this->_basePos->getZ(), r*(this->_baseRad / height), hitPoint.getZ() - this->_basePos->getZ());
+	Vector3 n = Vector3(hitPoint.getX() - this->_basePos->getX(), r*(this->_baseRad / this->height()), hitPoint.getZ() - this->_basePos->getZ());
 	n.normalize();
 	return n;
 }
