@@ -3,6 +3,7 @@
 \usepackage[margin=3cm]{geometry}
 \usepackage{indentfirst}
 \usepackage{graphicx}
+\usepackage{amsmath}
 \graphicspath{ {./images/} }
 \setlength{\parindent}{0.75cm} %heh, 0.75
 
@@ -38,7 +39,7 @@
         O raio verifica interseções com objetos ao chamar o método \texttt{intersect} de cada objeto, que devolve um \textit{boolean} e a distância \textit{t} da origem do raio ao objeto. Depois disto, o objeto com menor \textit{t} é o mais próximo, logo os cálculos seguintes de iluminação aplicam-se a este.
 
         \par
-        A tabela abaixo contém os resultados de tempo para cada um dos testes disponibilizados. Estes resultados foram obtidos num portátil com um CPU Intel Core i7-8750H (6 \textit{cores}, 2.2GHz) e uma GPU NVIDIA GeForce GTX 1060, correndo Kubuntu 18.04 e usando o programa Unix \texttt{time} para determinar o tempo de execução.
+        A tabela abaixo contém os resultados de tempo para cada um dos testes disponibilizados. Estes resultados foram obtidos num portátil com um CPU Intel Core i7-8750H (6 \textit{cores}, 2.2GHz) e uma GPU NVIDIA GTX 1060, correndo Kubuntu 18.04 e usando o programa Unix \texttt{time} para determinar o tempo de execução.
 
         \begin{table}[h]
             \centering
@@ -46,38 +47,77 @@
                 \hline
                 Teste & Low     & Medium    & High     & Very High \\ \hline
                 Balls & 0m11s   & 0m18s     & 12m14s   & -         \\ \hline
-                Mount & 0m15s   & -         & 8m58s    &           \\ \hline
+                Mount & 0m15s   & -         & 8m58s    & 2h21m3s   \\ \hline
             \end{tabular}
         \end{table}
-    \subsection*{Raio-Esfera}
-
-        \centering
-        \includegraphics[scale=0.27]{deez_low}
-        \includegraphics[scale=0.27]{deez_med} 
-        \includegraphics[scale=0.27]{deez_high} 
-
-    \subsection*{Raio-Plano}
-
-    \subsection*{Raio-Triângulo}
+    \subsection*{Raio - Esfera}
 
         \par
-        Para calcular a interseção entre raios e triânglos, utiliza-se o algoritmo de Möller-Trumbone.
+        O cálculo da interseção raio - esfera contém várias otimizações. Primeiro, se a distância entre a origem do raio e o centro da esfera for maior que o raio da mesma, calcula-se 
+        $$ B = x_d (x_c + x_o) + y_d (y_c + y_o) + z_d (z_c + z_o). $$
+        Se B for negativo, o raio aponta para a direção oposta da esfera pode-se concluir que não há interseção.
+        \par
+        Depois, calculamos $$ R = B^2 - C = B^2 - d^2_{OC} + r^2 $$ e se B for negativo, conclui-se também que não há interseção.
+        \par
+        Finalmente, há interseção. Finalmente, calculamos
+        $$
+            t_i =
+            \begin{cases}
+                B - \sqrt{R}, &\mbox{se } d^2_{OC} > r^2\\
+                B + \sqrt{R}, &\mbox{se } d^2_{OC} \leq r^2 
+            \end{cases}
+        $$
+        para determinar o ponto de interseção e a sua normal, para efeitos de cálculo de cor.
+        
 
-        \centering
-        \includegraphics[scale=0.27]{mount_low}
-        \includegraphics[scale=0.27]{mount_med} 
-        \includegraphics[scale=0.27]{mount_high} 
+    \subsection*{Raio - Plano}
+        \par
+        A interseção raio - plano é simples; calcula-se o produto interno da normal do plano e a direção do raio. Se esta for zero, o raio e o plano são paralelos e como tal não se podem intersetar.
+        \par
+        Depois, calculamos
+        $$
+            t_i = -\frac{(o - a) \cdot n }{ n \cdot d}.
+        $$
+        Se $t$ for negativo, rejeita-se os cálculos. Caso contrário, usa-se o $t$ para determinar o ponto de interseção e a sua normal.
+    \subsection*{Raio - Triângulo}
 
-    \subsection*{Raio-Cone (Extra)}
+        \par
+        Para calcular a interseção entre raios e triânglos, utiliza-se o algoritmo de Möller-Trumbore. Primeiro, calculamos o determinante da matriz com os 3 pontos do polígono, que também pode ser calculada através de 
+        $$
+            det = a_{01} \cdot (d \times a_{02} ),
+        $$
+        $a_{01}$ e $a_{02}$ sendo arestas do triângulo. Se este determinante for zero, raio e triângulo são paralelos e abandonam-se os cálculos de interseção.
+        \par
+        Depois, calcula-se coordenadas baricêntricas $u$ e $v$. Se $u$ não estiver no intervalo (0,1), $v$ for negativo ou $u + v > 1$, abandonam-se os cálculos.
+        \par
+        Finalmente, calculamos
+        $$
+            t_i = \frac{1}{det} (a_{02} \cdot ((o -v_0) \times a_{01})).
+        $$
+        Se $t$ for negativo, a direção do raio é oposta ao vetor entre raio e triângulo, por isso abandonam-se os cálculos. Caso contrário, há uma interseção e usamos $t$ para calcular o ponto de interseção e a normal correspondente.
 
-    \subsection*{Raio-AABB (Extra)}
-
+    \subsection*{Raio - Cone (Extra)}
+        % papiças pls
+    \subsection*{Raio - AABB (Extra)}
+        % br pls
     \section*{Iluminação Blinn-Phong}
-
+        % papiças pls
     \section*{Sombras}
-
+        % papiças pls
     \section*{Reflexão}
+        % papiças pls
+        \begin{center}
+            \includegraphics[scale=0.27]{deez_low}
+            \includegraphics[scale=0.27]{deez_med} 
+            \includegraphics[scale=0.27]{deez_high} 
+        \end{center}
 
     \section*{Refração}
+        % br pls
+        \begin{center}
+            \includegraphics[scale=0.27]{mount_low}
+            \includegraphics[scale=0.27]{mount_med} 
+            \includegraphics[scale=0.54]{mount_high} 
+        \end{center}
 
 \end{document}
