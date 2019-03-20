@@ -21,36 +21,27 @@ float Cone::getBaseRadius(){ return this->_baseRad; }
 bool Cone::intersect(Ray ray, float& ti)
 {
 	if (this->getApexRadius() > 0) {
-		// translate the ray origin
 		Vector3 p0(ray.getOrigin()->getX() - this->_basePos->getX(), ray.getOrigin()->getY() - this->_basePos->getY(), ray.getOrigin()->getZ() - this->_basePos->getZ());
 
-		// coefficients for the intersection equation
-		// got them mathematically intersecting the line equation with the cylinder equation
 		double a = ray.getDirection()->getX()*ray.getDirection()->getX() + ray.getDirection()->getZ()*ray.getDirection()->getZ();
 		double b = ray.getDirection()->getX()*p0.getX() + ray.getDirection()->getZ()*p0.getZ();
 		double c = p0.getX()*p0.getX() + p0.getZ()*p0.getZ() - this->getBaseRadius() * this->getBaseRadius();
 
 		double delta = b * b - a * c;
 
-		//use epsilon because of computation errors between doubles
 		double epsilon = 0.00000001;
 
-		// delta < 0 means no intersections
 		if (delta < EPSILON)
 			return false;
 
-		// nearest intersection
 		ti = (-b - sqrt(delta)) / a;
 
-		// t<0 means the intersection is behind the ray origin
-		// which we don't want
 		if (ti <= EPSILON)
 			return false;
 
 
 		double y = p0.getY() + ti * ray.getDirection()->getY();
 
-		// check if we intersect one of the bases
 		if (y > this->height() + epsilon || y < -epsilon) {
 			double dist;
 			bool b1 = intersect_base(ray, this->getApexPosition(), dist);
@@ -74,15 +65,11 @@ bool Cone::intersect(Ray ray, float& ti)
 
 		double delta = b * b - a * c;
 
-		// delta < 0 means no intersections
 		if (delta < EPSILON)
 			return false;
 
-		// nearest intersection
 		ti = (-b - sqrt(delta)) / a;
 
-		// t<0 means the intersection is behind the ray origin
-		// which we don't want
 		if (ti < EPSILON)
 			return false;
 

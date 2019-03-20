@@ -94,7 +94,7 @@ bool AABB::intersect(Ray ray, float& ti) {
 	return (t0 < t1 && t1 > EPSILON);
 }
 Vector3 AABB::getNormal(const Vector3 &hitPoint) { 
-	/* //n funciona direito pq Z afinal � altura e n�o Y, e acho que X cresce para o outro lado... � preciso arranjar as coordenadas como deve ser
+	/*
 	if (hitPoint.getZ() - this->_z0 < 0.01f) {
 		//edge normals? do they even exist?
 		if (hitPoint.getY() - this->_y0 < 0.01f) return new Vector3(0.0f, -1.0f, -1.0f);

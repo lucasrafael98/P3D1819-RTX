@@ -28,7 +28,8 @@
 
 #define MAX_DEPTH 6
 
-#define NFF "NFF/aabb_refrac.nff"
+// NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
+#define NFF "NFF/aabb.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
