@@ -2,6 +2,8 @@
 \usepackage[utf8]{inputenc}
 \usepackage[margin=3cm]{geometry}
 \usepackage{indentfirst}
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
 \setlength{\parindent}{0.75cm} %heh, 0.75
 
 \title{
@@ -35,7 +37,24 @@
         \par
         O raio verifica interseções com objetos ao chamar o método \texttt{intersect} de cada objeto, que devolve um \textit{boolean} e a distância \textit{t} da origem do raio ao objeto. Depois disto, o objeto com menor \textit{t} é o mais próximo, logo os cálculos seguintes de iluminação aplicam-se a este.
 
+        \par
+        A tabela abaixo contém os resultados de tempo para cada um dos testes disponibilizados. Estes resultados foram obtidos num portátil com um CPU Intel Core i7-8750H (6 \textit{cores}, 2.2GHz) e uma GPU NVIDIA GeForce GTX 1060, correndo Kubuntu 18.04 e usando o programa Unix \texttt{time} para determinar o tempo de execução.
+
+        \begin{table}[h]
+            \centering
+            \begin{tabular}{|l|l|l|l|l|}
+                \hline
+                Teste & Low     & Medium    & High     & Very High \\ \hline
+                Balls & 0m11s   & 0m18s     & 12m14s   & -         \\ \hline
+                Mount & 0m15s   & -         & 8m58s    &           \\ \hline
+            \end{tabular}
+        \end{table}
     \subsection*{Raio-Esfera}
+
+        \centering
+        \includegraphics[scale=0.27]{deez_low}
+        \includegraphics[scale=0.27]{deez_med} 
+        \includegraphics[scale=0.27]{deez_high} 
 
     \subsection*{Raio-Plano}
 
@@ -43,6 +62,11 @@
 
         \par
         Para calcular a interseção entre raios e triânglos, utiliza-se o algoritmo de Möller-Trumbone.
+
+        \centering
+        \includegraphics[scale=0.27]{mount_low}
+        \includegraphics[scale=0.27]{mount_med} 
+        \includegraphics[scale=0.27]{mount_high} 
 
     \subsection*{Raio-Cone (Extra)}
 

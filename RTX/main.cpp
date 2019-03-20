@@ -29,7 +29,7 @@
 #define MAX_DEPTH 6
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
-#define NFF "NFF/aabb.nff"
+#define NFF "NFF/mount_very_high.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
@@ -71,7 +71,7 @@ static bool getShadow(const Vector3 *point, const Light *light, const std::vecto
 	Ray shadowRay(shadowRayOrigin.getX(), shadowRayOrigin.getY(), shadowRayOrigin.getZ(), 
 				shadowRayDirection.getX(), shadowRayDirection.getY(), shadowRayDirection.getZ());
 
-	for (int j = 0; j < objects.size(); j++) {
+	for (unsigned int j = 0; j < objects.size(); j++) {
 		float ti = INFINITY;
 		if (objects[j]->intersect(shadowRay, ti)) return true;
 	}
@@ -122,7 +122,7 @@ Color getMLighting(const SceneObject &object, const Vector3 *point, const Vector
 					 const std::vector<Light*> &lights, const std::vector<SceneObject*> &objects) {
 	Color rayColor;
 	// Compute illumination with shadows
-	for (int i = 0; i < lights.size(); i++) {
+	for (unsigned int i = 0; i < lights.size(); i++) {
 		float shadowFactor = getShadowFactor(point, lights[i], objects);
 		rayColor = rayColor + getLighting(object, point, normal, view, lights[i]) * (1.0 - shadowFactor);
 	}
@@ -174,7 +174,7 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 		R.normalize();
 
 		Ray rRay(hitPoint + N * 0.0001f, R);
-		float VdotR =  std::max(0.0f, V.dot(-R));
+		//float VdotR =  std::max(0.0f, V.dot(-R)); unused var warning
         Color reflectionColor = rayTracing(rRay,  depth + 1, RefrIndex); //* VdotR;
 		rayColor = rayColor + reflectionColor * hit->getMaterial()->getSpecular();
 	}
@@ -442,7 +442,7 @@ void setupGLEW() {
 		std::cerr << "ERROR glewInit: " << glewGetString(result) << std::endl;
 		exit(EXIT_FAILURE);
 	} 
-	GLenum err_code = glGetError();
+	//GLenum err_code = glGetError(); unused var warning
 	printf ("Vendor: %s\n", glGetString (GL_VENDOR));
 	printf ("Renderer: %s\n", glGetString (GL_RENDERER));
 	printf ("Version: %s\n", glGetString (GL_VERSION));
