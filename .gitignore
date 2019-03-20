@@ -10,3 +10,8 @@ RTX/.vs
 *.vcxproj.user
 RTX/NFF/balls_*
 RTX/NFF/mount_*
+*.aux
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.log

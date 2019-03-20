@@ -1,0 +1,59 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=3cm]{geometry}
+\usepackage{indentfirst}
+\setlength{\parindent}{0.75cm} %heh, 0.75
+
+\title{
+    \textbf{Programação 3D - Assignment I}
+    }
+\author{
+    \begin{Large}
+        \textbf{Grupo 02}
+    \end{Large}\\
+    Francisco Campaniço 83463\\
+    João Rafael 83482\\
+    Rodrigo Oliveira 83558
+}
+\date{Março 2019}
+
+\begin{document}
+
+    \maketitle
+
+    \section*{\textit{Parser} NFF}
+
+        \par 
+        O programa começa por ler o ficheiro NFF definido pelo utilizador no início do código. Seguindo a especificação do formato NFF, adiciona uma câmara, luzes e objetos à cena. A cena (classe \texttt{Scene}) contêm uma câmara, um número de luzes definido pelo ficheiro NFF, e objetos também definidos pelo mesmo.
+        \par
+        Um objeto (classe \texttt{SceneObject}) contém uma classe \texttt{Material} e métodos genéricos de interseção e cálculo de normais, que são \textit{overriden} pelas classes que herdam desta.
+        \par
+        Dado que o formato NFF não têm uma opção para \textit{Bounding Boxes}, foi adicionada uma opção para tal: \texttt{aabb x0 x1 y1 y2 z1 z2}, que cria uma AABB com os limites em cada eixo declarados pelas variáveis seguintes.
+
+    \section*{Interseções}
+
+        \par
+        O raio verifica interseções com objetos ao chamar o método \texttt{intersect} de cada objeto, que devolve um \textit{boolean} e a distância \textit{t} da origem do raio ao objeto. Depois disto, o objeto com menor \textit{t} é o mais próximo, logo os cálculos seguintes de iluminação aplicam-se a este.
+
+    \subsection*{Raio-Esfera}
+
+    \subsection*{Raio-Plano}
+
+    \subsection*{Raio-Triângulo}
+
+        \par
+        Para calcular a interseção entre raios e triânglos, utiliza-se o algoritmo de Möller-Trumbone.
+
+    \subsection*{Raio-Cone (Extra)}
+
+    \subsection*{Raio-AABB (Extra)}
+
+    \section*{Iluminação Blinn-Phong}
+
+    \section*{Sombras}
+
+    \section*{Reflexão}
+
+    \section*{Refração}
+
+\end{document}
