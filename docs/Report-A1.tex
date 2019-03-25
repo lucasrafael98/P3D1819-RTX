@@ -97,15 +97,58 @@
         Se $t$ for negativo, a direção do raio é oposta ao vetor entre raio e triângulo, por isso abandonam-se os cálculos. Caso contrário, há uma interseção e usamos $t$ para calcular o ponto de interseção e a normal correspondente.
 
     \subsection*{Raio - Cone (Extra)}
-        % papiças pls
+        \begin{center}
+            \includegraphics[scale=0.60]{cone}
+        \end{center}
+        \par
+        Começamos por descobrir o valor do seno e coseno de $ \theta $ através de V, C e P. Depois calculamos os valores de a,b e c de acordo com a fórmula quadrática
+        $ at^2 + bt + c = 0 $:
+        \begin{equation*}
+            \begin{cases}
+                a &= (\overrightarrow{D} \cdot \overrightarrow{V})^2 - cos^2 \theta \\
+                b &= 2(\overrightarrow{D} \cdot \overrightarrow{V})(\overrightarrow{C}O \cdot \overrightarrow{V}) - \overrightarrow{D} \cdot \overrightarrow{C}O cos^2 \theta \\
+                c &= (\overrightarrow{C}O \cdot \overrightarrow{V})^2 - \overrightarrow{C}O \cdot \overrightarrow{C}O cos^2 \theta \\
+            \end{cases}
+        \end{equation*}
+        De seguida calculamos o determinante $\Delta = b^2 - 4ac$ e discartamos os casos em que este é menor ou igual a zero. No caso de ser maior apenas 
+        rejeitamos o t que está no lado da sombra e vemos se este é menor que uma constante muito pequena. Caso seja maior devolvemos que o raio interseta o cone.
     \subsection*{Raio - AABB (Extra)}
         % br pls
     \section*{Iluminação Blinn-Phong}
-        % papiças pls
+        \par
+        Para calcular a cor dos pixeis de acordo com as luzes da cena usamos o modelo de iluminação Blinn-Phong, isto é, começamos com a normal, 
+        o vetor que vai do ponto até à fonte de luz e calculamos a sua distância e, por consequência, a atenuação, visto que as luzes são todas 
+        \textit{point lights}. Depois faz-se o produto interno entre a normal e o vetor que foi calculado previamente para se encontrar a intensidade e, por fim, 
+        as descrições do material para encontrar a componente difusa.
+        \par
+        Falta só calcular a componente especular e para isso usamos o \textit{half vector}, que é a soma do vetor de direção da luz com o \textit{view vector} e
+        com isso efetuamos o mesmo calculo usado para a componente difusa e ficamos com a componente especular.
+        \par
+        Finalmente usamos as duas componentes calculadas e as descrições dos materiais para encontrar a cor do raio respetivo. Com múltiplas luzes apenas basta somar o resultado 
+        desta função com todas as luzes da cena e usando o fator de sombra que vai ser explicado a seguir.
     \section*{Sombras}
-        % papiças pls
+        \par
+        Para calcular as sombras começamos por descobrir o vetor de direção da luz em relação ao ponto em questão e
+        depois criamos um raio com origem no ponto mais a direção da luz e com essa direção. Finalmente descobre-se a interseção deste raio com os objetos da cena (como 
+        fosse um raio normal) e, caso este intersete um objeto, a função devolve um valor lógico positivo.
+        \par
+        Este valor vai ser usado depois para determinar se o valor devolvido é 0 ou 1 (1 caso tenha intersetado algum objeto), para que depois se possa 
+        multiplicar o simetrico desse valor na componente de cor devolvida pelo calculo de Blinn-Phong.
     \section*{Reflexão}
-        % papiças pls
+        \par
+        Para calcular a reflexão começamos por ver se o material do objeto é refletor (componente especular maior que 0). Depois calculamos o raio refletor da seguinte forma:
+        \begin{equation*}
+            \begin{split}
+                &p(t) = p_i + t\hat{r}_r.\\
+                &\textrm{onde,}\\
+                &\hat{r}_r = 2(V \cdot \hat{n})\hat{n} - V \\
+                &V_n = (V \cdot \hat{n})\hat{n}\\
+                &h = V_n - n \\
+                &\hat{r}_r = V_n + h
+            \end{split}
+        \end{equation*}
+        \par
+        Finalmente basta calcular a cor deste novo raio através do algoritmo de \textit{ray tracing} e depois somá-la à cor já previamente obtida.
         \begin{center}
             \includegraphics[scale=0.27]{deez_low}
             \includegraphics[scale=0.27]{deez_med} 
