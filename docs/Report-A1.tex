@@ -98,7 +98,7 @@
 
     \subsection*{Raio - Cone (Extra)}
         \begin{center}
-            \includegraphics[scale=0.60]{cone}
+            \includegraphics[scale=0.40]{cone}
         \end{center}
         \par
         Começamos por descobrir o valor do seno e coseno de $ \theta $ através de V, C e P. Depois calculamos os valores de a,b e c de acordo com a fórmula quadrática
@@ -113,8 +113,16 @@
         De seguida calculamos o determinante $\Delta = b^2 - 4ac$ e discartamos os casos em que este é menor ou igual a zero. No caso de ser maior apenas 
         rejeitamos o t que está no lado da sombra e vemos se este é menor que uma constante muito pequena. Caso seja maior devolvemos que o raio interseta o cone.
     \subsection*{Raio - AABB (Extra)}
-        % br pls
-    \section*{Iluminação Blinn-Phong}
+        \par
+        O método utilizado para detectar colisões entre AABBs e raios foi o algoritmo explicado na aula \textit{Slab Method}, proposto pela dupla \textit{Kay e Kajiya}.
+        Cada \textit{slab} consiste num espaço entre dois planos paralelos, sendo assim, a AABB consiste em interseções entre diferentes \textit{slabs}.
+        O algoritmo calcula três grupos de interseção ao longo do raio. Se houver uma interseção para cada par de \textit{slabs} pelo raio e se todos os intervalos sobreporem-se, então, o raio atingiu a AABB.
+        \begin{center}
+            \includegraphics[scale=0.40]{slab}
+        \end{center}
+        \par
+        Na imagem acima podemos ver um exemplo do algoritmo proposto. A imagem à esquerda exemplifica um caso em que a interseção acontece, como é fácil verificar na imagem os intervalos sobrepõem-se: $txmin < tymax < txmax$. A imagem à direita mostra um exemplo em que não há sobreposição entre os intervalos, logo, não há interseção.
+        \section*{Iluminação Blinn-Phong}
         \par
         Para calcular a cor dos pixeis de acordo com as luzes da cena usamos o modelo de iluminação Blinn-Phong, isto é, começamos com a normal, 
         o vetor que vai do ponto até à fonte de luz e calculamos a sua distância e, por consequência, a atenuação, visto que as luzes são todas 
@@ -156,11 +164,16 @@
         \end{center}
 
     \section*{Refração}
-        % br pls
+	\par
+       	 Todos os objetos que possuem transmitância passam ao cálculo de refração. A refração foi feita tendo em base a \textit{Lei de Snell}. Com o uso de trigonometria e de forma a garantir que não há reflexão total verificamos se \begin{center}$C = 1 - \eta^2 \times (1 - (\overrightarrow{Dir} \cdot \overrightarrow{N})^2) \geq 0$, onde $\eta = \frac{n1}{n2} (\textit{Lei de Snell})$\end{center}
+	\par
+	Não havendo reflexão total, podemos calcular o raio refletor usando $C$ previamente obtido através da seguinte fórmula: \begin{center}$\hat{r}_r = (\overrightarrow{Dir} \times \eta) + (\overrightarrow{N} \times (\eta \times (\overrightarrow{Dir} \cdot \overrightarrow{N}) - \sqrt{C}))$\end{center}
+	\par
+	Agora basta calcular a cor deste novo raio através do algoritmo de ray tracing e depois somá-la à cor já previamente obtida (já tendo em conta a reflexão).
         \begin{center}
             \includegraphics[scale=0.27]{mount_low}
             \includegraphics[scale=0.27]{mount_med} 
             \includegraphics[scale=0.54]{mount_high} 
         \end{center}
-
+	
 \end{document}
