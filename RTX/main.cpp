@@ -28,8 +28,10 @@
 
 #define MAX_DEPTH 6
 
+#define N_SHIRLEY 4
+
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
-#define NFF "NFF/mount_very_high.nff"
+#define NFF "NFF/balls_low.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
@@ -351,22 +353,34 @@ void drawPoints()
 
 /////////////////////////////////////////////////////////////////////// CALLBACKS
 
+
+Color jittering(int x, int y) {
+	Ray ray;
+	Color color = Color(0.0, 0.0, 0.0);
+	for (int p = 0; p < N_SHIRLEY - 1; p++) {
+		for (int q = 0; q < N_SHIRLEY - 1; q++) {
+			double randomFactor = ((double)rand() / (RAND_MAX)); //0 < random < 1
+			ray = computePrimaryRay(x + ((p + randomFactor) / N_SHIRLEY), y + ((q + randomFactor) / N_SHIRLEY));
+			color = color + rayTracing(ray, 1, 1.0);
+		}
+	}
+	int ns2 = (N_SHIRLEY * N_SHIRLEY);
+	return Color(color.getR() / ns2, color.getG() / ns2, color.getB() / ns2);
+}
+
 // Render function by primary ray casting from the eye towards the scene's objects
 
 void renderScene()
 {
 	int index_pos=0;
 	int index_col=0;
-	Ray ray;
 	Color color;
 
 	for (int y = 0; y < RES_Y; y++)
 	{
 		for (int x = 0; x < RES_X; x++)
 		{
-			ray = computePrimaryRay(x, y);
-			color = rayTracing(ray, 1, 1.0 );
-
+			color = jittering(x, y);
 			vertices[index_pos++]= (float)x;
 			vertices[index_pos++]= (float)y;
 			colors[index_col++]= (float)color.getR();
