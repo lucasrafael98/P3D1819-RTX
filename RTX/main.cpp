@@ -135,7 +135,7 @@ Color getMLighting(const SceneObject &object, const Vector3 *point, const Vector
 Color rayTracing( Ray ray, int depth, float RefrIndex)
 {
 	if(depth > MAX_DEPTH) return *(scene->getBGColor());
-	Color rayColor;
+	Color rayColor = Color(0.0,0.0,0.0);
 	std::vector<SceneObject*> objects = scene->getObjectVector();
 	float tnear = INFINITY;
 	SceneObject* hit = nullptr;
@@ -156,7 +156,11 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 	N.normalize();
 	Vector3 V = *(scene->getCamera()->getEye()) - hitPoint;
 	V.normalize();
-	rayColor = getMLighting(*hit, &hitPoint, N, V, scene->getLights(), scene->getObjectVector());
+
+	for(int p=0; p < N_SHIRLEY; p++)
+		rayColor = rayColor + getMLighting(*hit, &hitPoint, N, V, scene->getLights(), scene->getObjectVector());
+
+	rayColor = Color(rayColor.getR() / N_SHIRLEY, rayColor.getG() / N_SHIRLEY, rayColor.getB() / N_SHIRLEY);
 
 	Vector3 dir = *(ray.getDirection());
 	float RdotN = dir.dot(N);
