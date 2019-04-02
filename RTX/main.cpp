@@ -66,7 +66,7 @@ Ray computePrimaryRay(float x, float y){
 }
 
 static bool getShadow(const Vector3 *point, const Light *light, const std::vector<SceneObject*> &objects) {
-	Vector3 shadowRayDirection = *(light->getPosition()) - *point;
+	Vector3 shadowRayDirection = Vector3(light->getPosition()->getX() * ((double)rand() / (RAND_MAX)), light->getPosition()->getY() * ((double)rand() / (RAND_MAX)), light->getPosition()->getZ()) - *point;
 	shadowRayDirection.normalize();
 	// 0.0001f to avoid self-intersection
 	Vector3 shadowRayOrigin = *point + *(light->getPosition()) * 0.0001f;
