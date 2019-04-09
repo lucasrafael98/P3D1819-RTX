@@ -21,7 +21,7 @@
 #include "Ray.h"
 #include "Camera.h"
 
-#define CAPTION "EPIC RTX LOADING..."
+#define CAPTION "RTX ON"
 
 #define VERTEX_COORD_ATTRIB 0
 #define COLOR_ATTRIB 1
@@ -29,6 +29,7 @@
 #define MAX_DEPTH 6
 
 #define N_SHIRLEY 4
+#define AREA_LIGHT 0.1
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
 #define NFF "NFF/balls_low.nff"
@@ -59,14 +60,14 @@ int WindowHandle = 0;
 ///////////////////////////////////////////////////////////////////////  RAY-TRACE SCENE
 
 Ray computePrimaryRay(float x, float y){
-	Vector3 *rayOrigin = new Vector3(scene->getCamera()->getEye());
+	Vector3 rayOrigin = Vector3(scene->getCamera()->getEye());
 	Vector3 rayDirection = scene->getCamera()->computeRayDirection(x,y);
-	return Ray(rayOrigin->getX(), rayOrigin->getY(), rayOrigin->getZ(),
+	return Ray(rayOrigin.getX(), rayOrigin.getY(), rayOrigin.getZ(),
 				rayDirection.getX(), rayDirection.getY(), rayDirection.getZ());
 }
 
-static bool getShadow(const Vector3 *point, const Light *light, const std::vector<SceneObject*> &objects) {
-	Vector3 shadowRayDirection = Vector3(light->getPosition()->getX() * ((double)rand() / (RAND_MAX)), light->getPosition()->getY() * ((double)rand() / (RAND_MAX)), light->getPosition()->getZ()) - *point;
+static float getShadow(const Vector3 *point, const Light *light, const std::vector<SceneObject*> &objects) {
+	Vector3 shadowRayDirection = Vector3(light->getPosition()->getX(), light->getPosition()->getY(), light->getPosition()->getZ()) - *point;
 	shadowRayDirection.normalize();
 	// 0.0001f to avoid self-intersection
 	Vector3 shadowRayOrigin = *point + *(light->getPosition()) * 0.0001f;
@@ -75,19 +76,40 @@ static bool getShadow(const Vector3 *point, const Light *light, const std::vecto
 
 	for (unsigned int j = 0; j < objects.size(); j++) {
 		float ti = INFINITY;
-		if (objects[j]->intersect(shadowRay, ti)) return true;
+		if (objects[j]->intersect(shadowRay, ti)) return 1.0f;
 	}
-	return false;
+	return 0.0f;
 }
 
 static float getShadowFactor(const Vector3 *point, const Light *light, const std::vector<SceneObject*> &objects) {
-
-	bool isInShadow = getShadow(point, light, objects);
-	if (isInShadow)
-		return 1.0;
-	else
-		return 0.0;
-
+	std::vector<Vector3> r;
+	std::vector<Vector3> s;
+	for (int p = 0; p < N_SHIRLEY - 1; p++) {
+		for (int q = 0; q < N_SHIRLEY - 1; q++) {
+			double randomFactor = ((double)rand() / (RAND_MAX)); //0 < random < 1
+			r.push_back(Vector3(point->getX() + ((p + randomFactor)/N_SHIRLEY*AREA_LIGHT),
+									 point->getY() + ((q + randomFactor)/N_SHIRLEY*AREA_LIGHT),
+									 point->getZ()));
+			randomFactor = ((double)rand() / (RAND_MAX)); //0 < random < 1
+			s.push_back(Vector3(light->getPosition()->getX() + ((p + randomFactor) * AREA_LIGHT),
+									 light->getPosition()->getY() + ((q + randomFactor) * AREA_LIGHT),
+									 light->getPosition()->getZ()));
+		}
+	}
+	for(int i = s.size() - 1; i!=-1; i--){
+		int j = (double)rand() / RAND_MAX * i;
+		Vector3 temp = s.at(i);
+		s.at(i) = s.at(j);
+		s.at(j) = temp;
+	}
+	float shadowFactor = 0.0f;
+	for(unsigned int i = 0; i != r.size(); i++){
+		point = &(r.at(i));
+		Light newlight = Light(s.at(i).getX(), s.at(i).getY(), s.at(i).getZ());
+		shadowFactor += getShadow(point, &newlight, objects);
+	}
+	shadowFactor /= r.size();
+	return shadowFactor;
 }
 
 Color getLighting(const SceneObject &object, const Vector3 *point, const Vector3 &normal, const Vector3 &view, const Light *light) {
@@ -157,10 +179,10 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 	Vector3 V = *(scene->getCamera()->getEye()) - hitPoint;
 	V.normalize();
 
-	for(int p=0; p < N_SHIRLEY; p++)
+	//for(int p=0; p < N_SHIRLEY; p++)
 		rayColor = rayColor + getMLighting(*hit, &hitPoint, N, V, scene->getLights(), scene->getObjectVector());
 
-	rayColor = Color(rayColor.getR() / N_SHIRLEY, rayColor.getG() / N_SHIRLEY, rayColor.getB() / N_SHIRLEY);
+	//rayColor = Color(rayColor.getR() / N_SHIRLEY, rayColor.getG() / N_SHIRLEY, rayColor.getB() / N_SHIRLEY);
 
 	Vector3 dir = *(ray.getDirection());
 	float RdotN = dir.dot(N);
@@ -534,6 +556,7 @@ int main(int argc, char* argv[])
 
 	init(argc, argv);
 	glutMainLoop();	
+	delete scene;
 	exit(EXIT_SUCCESS);
 }
 ///////////////////////////////////////////////////////////////////////
