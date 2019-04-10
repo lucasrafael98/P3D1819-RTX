@@ -23,9 +23,6 @@ void Scene::loadNFF(std::string filename){
             this->_bgColor = new Color(stof(lin_proc.at(1)), 
                                         stof(lin_proc.at(2)),
                                         stof(lin_proc.at(3)));
-            /*std::cout << "=====BG COLOR=====\n" << this->_bgColor->getR() << "\t"
-                                         << this->_bgColor->getB() << "\t"
-                                         << this->_bgColor->getG() << "\t\n";*/
         }
         else if(lin_proc.at(0) == std::string("v")){
             // camera: add from, at, up, angle, hither, resolution
@@ -52,20 +49,9 @@ void Scene::loadNFF(std::string filename){
                                         atVec->getX(), atVec->getY(), atVec->getZ(),
                                         upVec->getX(),upVec->getY(),upVec->getZ(),
                                         resX, resY, camAngle, camHither);
-            /*std::cout << "=====CAMERA=====\nFROM\n" << this->_camera->getEye()->getX() << "\t"
-                                             << this->_camera->getEye()->getY() << "\t"
-                                             << this->_camera->getEye()->getZ() << "\t\n"
-                        << "AT\n" << this->_camera->getAt()->getX() << "\t"
-                                    << this->_camera->getAt()->getY() << "\t"
-                                    << this->_camera->getAt()->getZ() << "\t\n"
-                        << "UP\n" << this->_camera->getUp()->getX() << "\t"
-                                    << this->_camera->getUp()->getY() << "\t"
-                                    << this->_camera->getUp()->getZ() << "\t\n"
-                        << "RESOLUTION\n" << this->_camera->getResX() << "by" << this->_camera->getResY() << "\n"
-                        << "FOV\t" << this->_camera->getFOV() << "\n"
-                        << "HITHER\t" << this->_camera->getNear() << "\n";*/
-
-
+            delete fromVec;
+            delete atVec;
+            delete upVec;
         }
         else if(lin_proc.at(0) == std::string("l")){
             // positional light: xyz, optional rgb (1,1,1 white if not specified)
@@ -80,14 +66,6 @@ void Scene::loadNFF(std::string filename){
             for(int i = 1; i != 9; i++){
                 material[i - 1] = stof(lin_proc.at(i));
             }
-            /*std::cout << "=====MTL CHANGE=====\n" << "COLOR\t" << material[0] << "\t"
-                                                     << material[1] << "\t"
-                                                     << material[2] << "\n"
-                                        << "DIFFUSE\t" << material[3] << "\n"
-                                        << "SPECULAR\t" << material[4] << "\n"
-                                        << "SHININESS\t" << material[5] << "\n"
-                                        << "TRANSMITTANCE\t" << material[6] << "\n"
-                                        << "REFRACTION INDEX\t" << material[7] <<"\n";*/
         }
         else if(lin_proc.at(0) == std::string("c")){
             // cone/cylinder

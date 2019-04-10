@@ -26,11 +26,11 @@
 #define VERTEX_COORD_ATTRIB 0
 #define COLOR_ATTRIB 1
 
-#define AA_JITTER true
-#define SOFT_SHADOWS true
+#define AA_JITTER false
+#define SOFT_SHADOWS false
 
 #define MAX_DEPTH 6
-#define SAMPLES 3
+#define SAMPLES 1
 #define AREA_LIGHT 0.1
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
@@ -438,17 +438,18 @@ void renderScene()
 				index_pos=0;
 				index_col=0;
 		}
-		draw = false;
 	}
 
 	if(draw_mode == 2) //preenchar o conteudo da janela com uma imagem completa
 		 drawPoints();
 
-	printf("All done!\n"); 	
+	printf("All done!\n"); 
+	draw = false;
 }
 
 void cleanup()
 {
+	delete scene;
 	destroyShaderProgram();
 	destroyBufferObjects();
 }
@@ -570,7 +571,6 @@ int main(int argc, char* argv[])
 
 	init(argc, argv);
 	glutMainLoop();	
-	delete scene;
 	exit(EXIT_SUCCESS);
 }
 ///////////////////////////////////////////////////////////////////////

@@ -14,6 +14,7 @@ Polygon::Polygon(float r, float g, float b, float diff,
 Polygon::~Polygon(){
     for(Vector3* vec: this->_verts)
         delete vec;
+    delete this->_normal;
 }
 Vector3* Polygon::getVertex(int i){ return this->_verts.at(i); }
 

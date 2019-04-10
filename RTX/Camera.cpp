@@ -22,7 +22,14 @@ Camera::Camera(float fromx, float fromy, float fromz,
             this->_h = 2 * this->_df * tan(0.5 * (this->_fov * M_PI / 180));
 	        this->_w = this->_resx / this->_resy * this->_h;
         }
-Camera::~Camera(){}
+Camera::~Camera(){
+    delete this->_eye;
+    delete this->_at;
+    delete this->_up;
+    delete this->_xe;
+    delete this->_ye;
+    delete this->_ze;
+}
 
 Vector3* Camera::getEye(){ return this->_eye;}
 Vector3* Camera::getAt(){ return this->_at;}
