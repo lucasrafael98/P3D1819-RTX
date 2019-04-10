@@ -8,6 +8,11 @@ SceneObject::SceneObject(float r, float g, float b, float diff,
 
 SceneObject::~SceneObject(){
     delete this->_mtl;
+    delete this->_bbox;
 }
 
+BBox* SceneObject::createBBox(){ return new BBox(); }
+
 Material* SceneObject::getMaterial() const{ return this->_mtl; }
+BBox* SceneObject::getBBox() const{ return this->_bbox; }
+void SceneObject::setBBox(BBox* bbox){ this->_bbox = bbox; }

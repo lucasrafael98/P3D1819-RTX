@@ -30,7 +30,7 @@
 #define SOFT_SHADOWS true
 
 #define MAX_DEPTH 6
-#define SAMPLES 4
+#define SAMPLES 3
 #define AREA_LIGHT 0.1
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
@@ -59,6 +59,8 @@ int draw_mode=1;
 
 int WindowHandle = 0;
 
+bool draw = true;
+
 ///////////////////////////////////////////////////////////////////////  RAY-TRACE SCENE
 
 Ray computePrimaryRay(float x, float y){
@@ -69,55 +71,51 @@ Ray computePrimaryRay(float x, float y){
 }
 
 static float getShadow(const Vector3 *point, const Light *light, const std::vector<SceneObject*> &objects) {
-	Vector3 *shadowRayDirection = new Vector3(*(light->getPosition()) - *point);
-	shadowRayDirection->normalize();
+	Vector3 shadowRayDirection(*(light->getPosition()) - *point);
+	shadowRayDirection.normalize();
 	// 0.0001f to avoid self-intersection
-	Vector3 *shadowRayOrigin = new Vector3(*point + *(light->getPosition()) * 0.0001f);
-	Ray shadowRay(shadowRayOrigin->getX(), shadowRayOrigin->getY(), shadowRayOrigin->getZ(), 
-				shadowRayDirection->getX(), shadowRayDirection->getY(), shadowRayDirection->getZ());
+	Vector3 shadowRayOrigin(*point + *(light->getPosition()) * 0.0001f);
+	Ray shadowRay(shadowRayOrigin.getX(), shadowRayOrigin.getY(), shadowRayOrigin.getZ(), 
+				shadowRayDirection.getX(), shadowRayDirection.getY(), shadowRayDirection.getZ());
 
-	delete shadowRayDirection;
-	delete shadowRayOrigin;
 	for (unsigned int j = 0; j < objects.size(); j++) {
 		float ti = INFINITY;
-		if (objects[j]->intersect(shadowRay, ti)) return 1.0f;
+		if (objects[j]->intersect(shadowRay, ti)){
+			return 1.0f;
+		}
 	}
 	return 0.0f;
 }
 
 static float getShadowFactor(const Vector3 *point, const Light *light, const std::vector<SceneObject*> &objects) {
 	if(SOFT_SHADOWS){
-		//std::vector<Vector3*> r;
-		std::vector<Vector3*> s;
+		//std::vector<Vector3> r;
+		std::vector<Vector3> s;
 		for (int p = 0; p < SAMPLES; p++) {
 			for (int q = 0; q < SAMPLES; q++) {
-				/*double randomFactor = ((double)rand() / (RAND_MAX)); //0 < random < 1
-				r.push_back(new Vector3(point->getX() + ((p + randomFactor)/SAMPLES*AREA_LIGHT),
+				/*float randomFactor = ((float)rand() / (RAND_MAX)); //0 < random < 1
+				r.push_back(Vector3(point->getX() + ((p + randomFactor)/SAMPLES*AREA_LIGHT),
 										point->getY() + ((q + randomFactor)/SAMPLES*AREA_LIGHT),
 										point->getZ()));*/
-				double randomFactor = ((double)rand() / (RAND_MAX)); //0 < random < 1
-				s.push_back(new Vector3(light->getPosition()->getX() + ((p + randomFactor) * AREA_LIGHT),
+				float randomFactor = ((float)rand() / (RAND_MAX)); //0 < random < 1
+				s.push_back(Vector3(light->getPosition()->getX() + ((p + randomFactor) * AREA_LIGHT),
 										light->getPosition()->getY() + ((q + randomFactor) * AREA_LIGHT),
 										light->getPosition()->getZ()));
 			}
 		}
 		for(int i = s.size() - 1; i!=-1; i--){
 			int j = (double)rand() / RAND_MAX * i;
-			Vector3* temp = s.at(i);
+			Vector3 temp = s.at(i);
 			s.at(i) = s.at(j);
 			s.at(j) = temp;
 		}
 		float shadowFactor = 0.0f;
 		for(unsigned int i = 0; i != s.size(); i++){
 			//point = r.at(i);
-			Light newlight = Light(s.at(i)->getX(), s.at(i)->getY(), s.at(i)->getZ());
-			shadowFactor += getShadow(point, &newlight, objects);
+			Light sl = Light(s.at(i).getX(), s.at(i).getY(), s.at(i).getZ());
+			shadowFactor += getShadow(point, &sl, objects);
 		}
 		shadowFactor /= s.size();
-		for(Vector3* vec: s)
-			delete vec;
-		//for(Vector3* vec: r)
-			//delete vec;
 		return shadowFactor;
 	}
 	else
@@ -126,34 +124,29 @@ static float getShadowFactor(const Vector3 *point, const Light *light, const std
 
 Color getLighting(const SceneObject &object, const Vector3 *point, const Vector3 &normal, const Vector3 &view, const Light *light) {
 	Color rayColor;
-
 	// Create diffuse color
-	Vector3 *N = new Vector3(normal);
+	Vector3 N(normal);
 
-	Vector3 *L = new Vector3(*(light->getPosition()) - *point);
-	float distance = L->length();
-	L->normalize();
+	Vector3 L(*(light->getPosition()) - *point);
+	float distance = L.length();
+	L.normalize();
 	float attenuate = light->attenuate(distance);
 
-	float NdotL = N->dot(L);
+	float NdotL = N.dot(L);
 	float intensity = std::max(0.0f, NdotL);
 	Color diffuse = *(object.getMaterial()->getColor()) * *(light->getColor()) * intensity * attenuate;
 
 	// Create specular color
-	Vector3 *V = new Vector3(view);
-	Vector3 *H = new Vector3(*L + *V);
-	H->normalize();
+	Vector3 V(view);
+	Vector3 H(L + V);
+	H.normalize();
 
 	float shininess = object.getMaterial()->getShininess();
-	float NdotH = N->dot(H);
+	float NdotH = N.dot(H);
 	float specularIntensity = pow(std::max(0.0f, NdotH), shininess);
 	Color specular = *(object.getMaterial()->getColor()) * *(light->getColor()) * specularIntensity * attenuate;
 
 	rayColor = diffuse * object.getMaterial()->getDiffuse() + specular * object.getMaterial()->getSpecular();
-	delete N;
-	delete L;
-	delete V;
-	delete H;
 	return rayColor;
 }
 
@@ -188,25 +181,23 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 	if (!hit) {
         return *(scene->getBGColor());
     }
-	Vector3* hitPoint = new Vector3(*(ray.getOrigin()) + *(ray.getDirection()) * tnear);
-	Vector3* N = new Vector3(hit->getNormal(hitPoint));
-	N->normalize();
-	Vector3* V = new Vector3(*(scene->getCamera()->getEye()) - hitPoint);
-	V->normalize();
+	Vector3 hitPoint(ray.getOrigin() + ray.getDirection() * tnear);
+	Vector3 N(hit->getNormal(hitPoint));
+	N.normalize();
+	Vector3 V(*(scene->getCamera()->getEye()) - hitPoint);
+	V.normalize();
 
 	//for(int p=0; p < SAMPLES; p++)
-		rayColor = rayColor + getMLighting(*hit, hitPoint, N, V, scene->getLights(), scene->getObjectVector());
+		rayColor = rayColor + getMLighting(*hit, &hitPoint, N, V, scene->getLights(), scene->getObjectVector());
 
 	//rayColor = Color(rayColor.getR() / SAMPLES, rayColor.getG() / SAMPLES, rayColor.getB() / SAMPLES);
 
-	Vector3* dir = new Vector3(ray.getDirection());
-	float RdotN = dir->dot(N);
+	Vector3 dir(ray.getDirection());
+	float RdotN = dir.dot(N);
 	float rIndexBefore = RefrIndex; //not sure about this one...
 	float rIndexDest = 1.0;
 	if(RefrIndex != 1.0){ //inside, swap refraction index
-		Vector3* temp = N;
-		N = new Vector3(- *N);
-		delete temp;
+		N = -N;
 	}
 	else { //outside
 		RdotN = -RdotN;
@@ -215,10 +206,10 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 	   
 	// If there's Ks, material is reflective.
 	if(hit->getMaterial()->getSpecular() > 0){
-		Vector3 R = *(ray.getDirection()) - *N * 2 * ray.getDirection()->dot(N);
+		Vector3 R = ray.getDirection() - N * 2 * ray.getDirection().dot(N);
 		R.normalize();
 
-		Ray rRay(*hitPoint + *N * 0.0001f, R);
+		Ray rRay(hitPoint + N * 0.0001f, R);
 		//float VdotR =  std::max(0.0f, V.dot(-R)); unused var warning
         Color reflectionColor = rayTracing(rRay,  depth + 1, RefrIndex); //* VdotR;
 		rayColor = rayColor + reflectionColor * hit->getMaterial()->getSpecular();
@@ -232,20 +223,15 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 		float totalInternalReflectionFactor = (1 - pow(snellResult, 2) * (1 - pow(RdotN, 2)));
 
 		if (!(totalInternalReflectionFactor < 0)) { //its not a total internal reflection
-			Vector3* R = new Vector3((*(ray.getDirection()) * snellResult) + (*N * (snellResult * RdotN - sqrt(totalInternalReflectionFactor))));
-			R->normalize();
+			Vector3 R((ray.getDirection() * snellResult) + (N * (snellResult * RdotN - sqrt(totalInternalReflectionFactor))));
+			R.normalize();
 
-			Ray rRay(*hitPoint + *R * 0.0001f, R);
+			Ray rRay(hitPoint + R * 0.0001f, R);
 			Color refractionColor = rayTracing(rRay, depth + 1, rIndexDest);
 
 			rayColor = rayColor + refractionColor * hit->getMaterial()->getTransmittance();
-			delete R;
 		}
 	}
-	delete hitPoint;
-	delete N;
-	delete V;
-	delete dir;
 	return rayColor;
 }
 
@@ -406,7 +392,7 @@ Color jittering(int x, int y) {
 	Color color = Color(0.0, 0.0, 0.0);
 	for (int p = 0; p < SAMPLES; p++) {
 		for (int q = 0; q < SAMPLES; q++) {
-			double randomFactor = ((double)rand() / (RAND_MAX)); //0 < random < 1
+			float randomFactor = ((float)rand() / (RAND_MAX)); //0 < random < 1
 			ray = computePrimaryRay(x + ((p + randomFactor) / SAMPLES), y + ((q + randomFactor) / SAMPLES));
 			color = color + rayTracing(ray, 1, 1.0);
 		}
@@ -419,6 +405,7 @@ Color jittering(int x, int y) {
 
 void renderScene()
 {
+	if(!draw) return;
 	int index_pos=0;
 	int index_col=0;
 	Color color;
@@ -451,6 +438,7 @@ void renderScene()
 				index_pos=0;
 				index_col=0;
 		}
+		draw = false;
 	}
 
 	if(draw_mode == 2) //preenchar o conteudo da janela com uma imagem completa

@@ -3,6 +3,7 @@
 
 #define M_PI 3.1415926535f
 #include <cmath>
+#include <algorithm>
 // for some intersection tests (defined in vec3 because it's included everywhere).
 #define EPSILON 0.0000001f
 
@@ -13,6 +14,7 @@ private:
     float _z;
 
 public:
+    Vector3();
     Vector3(float x, float y, float z);
     Vector3(Vector3* vec3);
     ~Vector3(){}
@@ -20,6 +22,9 @@ public:
     float getX() const;
     float getY() const;
     float getZ() const;
+    void setX(float x);
+    void setY(float y);
+    void setZ(float z);
 
     void rotateX(float angle);
     void rotateY(float angle);

@@ -21,10 +21,10 @@ float Cone::getBaseRadius(){ return this->_baseRad; }
 bool Cone::intersect(Ray ray, float& ti)
 {
 	if (this->getApexRadius() > 0) {
-		Vector3 p0(ray.getOrigin()->getX() - this->_basePos->getX(), ray.getOrigin()->getY() - this->_basePos->getY(), ray.getOrigin()->getZ() - this->_basePos->getZ());
+		Vector3 p0(ray.getOrigin().getX() - this->_basePos->getX(), ray.getOrigin().getY() - this->_basePos->getY(), ray.getOrigin().getZ() - this->_basePos->getZ());
 
-		double a = ray.getDirection()->getX()*ray.getDirection()->getX() + ray.getDirection()->getZ()*ray.getDirection()->getZ();
-		double b = ray.getDirection()->getX()*p0.getX() + ray.getDirection()->getZ()*p0.getZ();
+		double a = ray.getDirection().getX()*ray.getDirection().getX() + ray.getDirection().getZ()*ray.getDirection().getZ();
+		double b = ray.getDirection().getX()*p0.getX() + ray.getDirection().getZ()*p0.getZ();
 		double c = p0.getX()*p0.getX() + p0.getZ()*p0.getZ() - this->getBaseRadius() * this->getBaseRadius();
 
 		double delta = b * b - a * c;
@@ -40,7 +40,7 @@ bool Cone::intersect(Ray ray, float& ti)
 			return false;
 
 
-		double y = p0.getY() + ti * ray.getDirection()->getY();
+		double y = p0.getY() + ti * ray.getDirection().getY();
 
 		if (y > this->height() + epsilon || y < -epsilon) {
 			double dist;
@@ -57,10 +57,10 @@ bool Cone::intersect(Ray ray, float& ti)
 	else {
 		this->calculateAngle();
 
-		Vector3 p0(ray.getOrigin()->getX() - this->_basePos->getX(), ray.getOrigin()->getY() - this->_basePos->getY(), ray.getOrigin()->getZ() - this->_basePos->getZ());
+		Vector3 p0(ray.getOrigin().getX() - this->_basePos->getX(), ray.getOrigin().getY() - this->_basePos->getY(), ray.getOrigin().getZ() - this->_basePos->getZ());
 
-		double a = cosAlphaSq * ray.getDirection()->getX()*ray.getDirection()->getX() + cosAlphaSq * ray.getDirection()->getZ()*ray.getDirection()->getZ() - sinAlphaSq * ray.getDirection()->getY()*ray.getDirection()->getY();
-		double b = cosAlphaSq * ray.getDirection()->getX()*p0.getX() + cosAlphaSq * ray.getDirection()->getZ()*p0.getZ() - sinAlphaSq * ray.getDirection()->getY()*p0.getY();
+		double a = cosAlphaSq * ray.getDirection().getX()*ray.getDirection().getX() + cosAlphaSq * ray.getDirection().getZ()*ray.getDirection().getZ() - sinAlphaSq * ray.getDirection().getY()*ray.getDirection().getY();
+		double b = cosAlphaSq * ray.getDirection().getX()*p0.getX() + cosAlphaSq * ray.getDirection().getZ()*p0.getZ() - sinAlphaSq * ray.getDirection().getY()*p0.getY();
 		double c = cosAlphaSq * p0.getX()*p0.getX() + cosAlphaSq * p0.getZ()*p0.getZ() - sinAlphaSq * p0.getY()*p0.getY();
 
 		double delta = b * b - a * c;
@@ -73,7 +73,7 @@ bool Cone::intersect(Ray ray, float& ti)
 		if (ti < EPSILON)
 			return false;
 
-		double y = p0.getY() + ti * ray.getDirection()->getY();
+		double y = p0.getY() + ti * ray.getDirection().getY();
 
 		if (y < -this->height() - EPSILON || y > EPSILON)
 			return false;
@@ -105,21 +105,21 @@ Vector3 Cone::getNormal(const Vector3 &p)
 bool Cone::intersect_base(Ray ray, const Vector3 &c, double& t)
 {
 	Vector3 normal = normal_in(c);
-	Vector3 p0(ray.getOrigin()->getX() - this->_basePos->getX(), ray.getOrigin()->getY() - this->_basePos->getY(), ray.getOrigin()->getZ() - this->_basePos->getZ());
+	Vector3 p0(ray.getOrigin().getX() - this->_basePos->getX(), ray.getOrigin().getY() - this->_basePos->getY(), ray.getOrigin().getZ() - this->_basePos->getZ());
 	double A = normal.getX();
 	double B = normal.getY();
 	double C = normal.getZ();
 	double D = -(A*(c.getX() - this->_basePos->getX()) + B * (c.getY() - this->_basePos->getY()) + C * (c.getZ() - this->_basePos->getZ()));
 
-	if (A*ray.getDirection()->getX() + B * ray.getDirection()->getY() + C * ray.getDirection()->getZ() == 0)
+	if (A*ray.getDirection().getX() + B * ray.getDirection().getY() + C * ray.getDirection().getZ() == 0)
 		return false;
 
-	double dist = -(A*p0.getX() + B * p0.getY() + C * p0.getZ() + D) / (A*ray.getDirection()->getX() + B * ray.getDirection()->getY() + C * ray.getDirection()->getZ());
+	double dist = -(A*p0.getX() + B * p0.getY() + C * p0.getZ() + D) / (A*ray.getDirection().getX() + B * ray.getDirection().getY() + C * ray.getDirection().getZ());
 
 	if (dist < EPSILON)
 		return false;
 
-	Vector3 p(p0.getX() + dist * ray.getDirection()->getX(), p0.getY() + dist * ray.getDirection()->getY(), p0.getZ() + dist * ray.getDirection()->getZ());
+	Vector3 p(p0.getX() + dist * ray.getDirection().getX(), p0.getY() + dist * ray.getDirection().getY(), p0.getZ() + dist * ray.getDirection().getZ());
 	if (p.getX()*p.getX() + p.getZ()*p.getZ() - this->getBaseRadius() * this->getBaseRadius() > EPSILON)
 		return false;
 

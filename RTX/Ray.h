@@ -8,7 +8,7 @@
 
 class Ray{
 private:
-    Vector3 *_origin, *_direction;
+    Vector3 _origin, _direction;
 public:
 
     Ray();
@@ -16,8 +16,8 @@ public:
     Ray(Vector3 origin, Vector3 direction);
     ~Ray();
 
-    Vector3* getDirection();
-    Vector3* getOrigin();
+    Vector3 getDirection();
+    Vector3 getOrigin();
 
 };
 
