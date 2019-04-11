@@ -141,6 +141,7 @@ void Scene::loadNFF(std::string filename){
 		}
         else if(lin_proc.at(0) == std::string("#")) continue; // comment
     }
+    this->_grid = new Grid(this->_objects);
 }
 
 Scene::Scene(std::string filename){
@@ -150,6 +151,7 @@ Scene::Scene(std::string filename){
 Scene::~Scene(){
     delete this->_camera;
     delete this->_bgColor;
+    delete this->_grid;
     for(Light* l: this->_lights)
         delete l;
     for(SceneObject* so: this->_objects)
@@ -158,6 +160,7 @@ Scene::~Scene(){
 
 Camera* Scene::getCamera(){ return this->_camera; }
 Color* Scene::getBGColor(){ return this->_bgColor; }
+Grid* Scene::getGrid(){ return this->_grid; }
 Light* Scene::getLight(int i){ return this->_lights.at(i); }
 std::vector<Light*> Scene::getLights(){ return this->_lights; }
 std::vector<SceneObject*> Scene::getObjectVector(){ return this->_objects; }

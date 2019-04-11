@@ -33,6 +33,21 @@ float Sphere::getRadius(){ return this->_radius; }
 BBox* Sphere::createBBox(){
     Vector3 min = *(this->_pos) - this->_radius;
     Vector3 max = *(this->_pos) + this->_radius;
-    return new BBox(min.getX(), min.getY(), min.getZ(),
-                max.getX(), max.getY(), max.getZ());
+    if(min.getX() > max.getX()){
+        float temp = max.getX();
+        max.setX(min.getX());
+        min.setX(temp);
+    }
+    if(min.getY() > max.getY()){
+        float temp = max.getY();
+        max.setY(min.getY());
+        min.setY(temp);
+    }
+    if(min.getZ() > max.getZ()){
+        float temp = max.getZ();
+        max.setZ(min.getZ());
+        min.setZ(temp);
+    }
+    return new BBox(min.getX(), max.getX(), min.getY(),
+                max.getY(), min.getZ(), max.getZ());
 }

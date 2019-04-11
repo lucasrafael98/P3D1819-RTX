@@ -17,6 +17,7 @@
 #include "Polygon.h"
 #include "PolyPlane.h"
 #include "AABB.h"
+#include "Grid.h"
 
 class Scene{
 private:
@@ -25,6 +26,7 @@ private:
     Color* _bgColor;
     std::vector<Light*> _lights;
     std::vector<SceneObject*> _objects;
+    Grid* _grid;
 public:
 
     Scene(std::string filename);
@@ -32,6 +34,7 @@ public:
 
     Camera* getCamera();
     Color* getBGColor();
+    Grid* getGrid();
     Light* getLight(int i);
     std::vector<Light*> getLights();
     std::vector<SceneObject*> getObjectVector();

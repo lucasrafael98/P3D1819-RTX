@@ -4,6 +4,7 @@
 #define M_PI 3.1415926535f
 #include <cmath>
 #include <algorithm>
+#include <iostream>
 // for some intersection tests (defined in vec3 because it's included everywhere).
 #define EPSILON 0.0000001f
 
@@ -41,6 +42,7 @@ public:
     Vector3 operator + (const Vector3 &v) const { return Vector3(this->_x + v.getX(), this->_y + v.getY(), this->_z + v.getZ()); }
     Vector3 operator - (const Vector3 &v) const { return Vector3(this->_x - v.getX(), this->_y - v.getY(), this->_z - v.getZ()); }
     Vector3 operator * (const Vector3 &v)  const { return Vector3(this->_x * v.getX(), this->_y * v.getY(), this->_z * v.getZ()); }
+    Vector3 operator / (const Vector3 &v)  const { return Vector3(this->_x / v.getX(), this->_y / v.getY(), this->_z / v.getZ()); }
     float length2() const { return this->_x * this->_x + this->_y * this->_y + this->_z * this->_z; }
     float length() const { return sqrt(length2()); }
 };

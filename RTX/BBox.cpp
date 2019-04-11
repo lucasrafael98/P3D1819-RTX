@@ -4,7 +4,7 @@ BBox::BBox(float x0, float x1, float y0, float y1,
 	float z0, float z1) :
 	_x0(x0), _x1(x1), _y0(y0), _y1(y1), _z0(z0), _z1(z1) {}
 BBox::BBox():
-	_x0(-1), _x1(1), _y0(-1), _y1(1), _z0(-1), _z1(1) {}
+	_x0(0), _x1(0), _y0(0), _y1(0), _z0(0), _z1(0) {}
 
 float BBox::getMinX() const{ return this->_x0; }
 float BBox::getMinY() const{ return this->_y0; }
@@ -13,7 +13,19 @@ float BBox::getMaxX() const{ return this->_x1; }
 float BBox::getMaxY() const{ return this->_y1; }
 float BBox::getMaxZ() const{ return this->_z1; }
 
-bool BBox::intersect(Ray ray, float& ti) {
+// check if a point is inside the box
+bool BBox::inside(Vector3 point){
+	if(this->getMinX() < point.getX() && 
+		this->getMinY() < point.getY() && 
+		this->getMinZ() < point.getZ() && 
+		this->getMaxX() > point.getX() && 
+		this->getMaxY() > point.getY() && 
+		this->getMaxZ() > point.getZ())
+		return true;
+	else return false;
+}
+
+bool BBox::intersect(Ray ray, float& ti, Vector3 &tmin, Vector3 &tmax) {
 
 	ray.getDirection().normalize();
 
@@ -70,6 +82,9 @@ bool BBox::intersect(Ray ray, float& ti) {
 
 	if(tz_max < t1)
 		t1 = tz_max;
+
+	tmin = Vector3(tx_min, ty_min, tz_min);
+	tmax = Vector3(tx_max, ty_max, tz_max);
 
 	ti = (t0 < t1) ? t0 : t1;
 

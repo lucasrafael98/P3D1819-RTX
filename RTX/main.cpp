@@ -26,11 +26,14 @@
 #define VERTEX_COORD_ATTRIB 0
 #define COLOR_ATTRIB 1
 
-#define AA_JITTER false
-#define SOFT_SHADOWS false
+#define GRID_ON false
+// 0/1/2: off/jitter/montecarlo
+#define AA_MODE 1
+// 0/1/2: off/random/area
+#define SOFT_SHADOWS 2
 
 #define MAX_DEPTH 6
-#define SAMPLES 1
+#define SAMPLES 2
 #define AREA_LIGHT 0.1
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
@@ -71,24 +74,39 @@ Ray computePrimaryRay(float x, float y){
 }
 
 static float getShadow(const Vector3 *point, const Light *light, const std::vector<SceneObject*> &objects) {
-	Vector3 shadowRayDirection(*(light->getPosition()) - *point);
+	Vector3 shadowRayDirection;
+	if(SOFT_SHADOWS == 1)
+		shadowRayDirection =
+			 Vector3(light->getPosition()->getX() * ((double)rand() / (RAND_MAX)), 
+			 		light->getPosition()->getY() * ((double)rand() / (RAND_MAX)), 
+					light->getPosition()->getZ()) - *point;
+	else 
+		shadowRayDirection = Vector3(*(light->getPosition()) - *point);
 	shadowRayDirection.normalize();
 	// 0.0001f to avoid self-intersection
 	Vector3 shadowRayOrigin(*point + *(light->getPosition()) * 0.0001f);
 	Ray shadowRay(shadowRayOrigin.getX(), shadowRayOrigin.getY(), shadowRayOrigin.getZ(), 
 				shadowRayDirection.getX(), shadowRayDirection.getY(), shadowRayDirection.getZ());
-
-	for (unsigned int j = 0; j < objects.size(); j++) {
+	if(GRID_ON){
 		float ti = INFINITY;
-		if (objects[j]->intersect(shadowRay, ti)){
+		if(scene->getGrid()->intersect(shadowRay, ti))
 			return 1.0f;
+		else
+			return 0.0f;
+	}
+	else{
+		for (unsigned int j = 0; j < objects.size(); j++) {
+			float ti = INFINITY;
+			if (objects[j]->intersect(shadowRay, ti)){
+				return 1.0f;
+			}
 		}
 	}
 	return 0.0f;
 }
 
 static float getShadowFactor(const Vector3 *point, const Light *light, const std::vector<SceneObject*> &objects) {
-	if(SOFT_SHADOWS){
+	if(SOFT_SHADOWS == 2){
 		//std::vector<Vector3> r;
 		std::vector<Vector3> s;
 		for (int p = 0; p < SAMPLES; p++) {
@@ -165,32 +183,33 @@ Color getMLighting(const SceneObject &object, const Vector3 *point, const Vector
 Color rayTracing( Ray ray, int depth, float RefrIndex)
 {
 	if(depth > MAX_DEPTH) return *(scene->getBGColor());
-	Color rayColor = Color(0.0,0.0,0.0);
-	std::vector<SceneObject*> objects = scene->getObjectVector();
-	float tnear = INFINITY;
+	Color rayColor;
 	SceneObject* hit = nullptr;
-	for(SceneObject* so: objects){
-		float ti = INFINITY;
-		if(so->intersect(ray, ti)){
-			if (ti < tnear) {
-				tnear = ti;
-				hit = so;
+	float tnear = INFINITY;
+	if(GRID_ON)
+		hit = scene->getGrid()->intersect(ray, tnear);
+	else{
+		std::vector<SceneObject*> objects = scene->getObjectVector();
+		for(SceneObject* so: objects){
+			float ti = INFINITY;
+			if(so->intersect(ray, ti)){
+				if (ti < tnear) {
+					tnear = ti;
+					hit = so;
+				}
 			}
 		}
 	}
 	if (!hit) {
-        return *(scene->getBGColor());
-    }
+		return *(scene->getBGColor());
+	}
 	Vector3 hitPoint(ray.getOrigin() + ray.getDirection() * tnear);
 	Vector3 N(hit->getNormal(hitPoint));
 	N.normalize();
 	Vector3 V(*(scene->getCamera()->getEye()) - hitPoint);
 	V.normalize();
 
-	//for(int p=0; p < SAMPLES; p++)
-		rayColor = rayColor + getMLighting(*hit, &hitPoint, N, V, scene->getLights(), scene->getObjectVector());
-
-	//rayColor = Color(rayColor.getR() / SAMPLES, rayColor.getG() / SAMPLES, rayColor.getB() / SAMPLES);
+	rayColor = rayColor + getMLighting(*hit, &hitPoint, N, V, scene->getLights(), scene->getObjectVector());
 
 	Vector3 dir(ray.getDirection());
 	float RdotN = dir.dot(N);
@@ -203,7 +222,7 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 		RdotN = -RdotN;
 		rIndexDest = hit->getMaterial()->getRefractionIndex();
 	}
-	   
+	
 	// If there's Ks, material is reflective.
 	if(hit->getMaterial()->getSpecular() > 0){
 		Vector3 R = ray.getDirection() - N * 2 * ray.getDirection().dot(N);
@@ -211,7 +230,7 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 
 		Ray rRay(hitPoint + N * 0.0001f, R);
 		//float VdotR =  std::max(0.0f, V.dot(-R)); unused var warning
-        Color reflectionColor = rayTracing(rRay,  depth + 1, RefrIndex); //* VdotR;
+		Color reflectionColor = rayTracing(rRay,  depth + 1, RefrIndex); //* VdotR;
 		rayColor = rayColor + reflectionColor * hit->getMaterial()->getSpecular();
 	}
 
@@ -414,7 +433,7 @@ void renderScene()
 	{
 		for (int x = 0; x < RES_X; x++)
 		{
-			if(AA_JITTER)
+			if(AA_MODE == 1)
 				color = jittering(x, y);
 			else{
 				Ray ray = computePrimaryRay(x, y);

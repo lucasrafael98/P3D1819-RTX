@@ -14,6 +14,7 @@ Plane::Plane(float r, float g, float b, float diff,
             Vector3 normal = sub21.cross(sub31);
             this->_normal = new Vector3(normal.getX(), normal.getY(), normal.getZ());
             this->_normal->normalize();
+            this->setBBox(this->createBBox());
         }
 Plane::~Plane(){
     delete this->_pos1;

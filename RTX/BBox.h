@@ -13,7 +13,8 @@ public:
     BBox();
     BBox(float x0, float x1, float y0, float y1, float z0, float z1);
     ~BBox(){}
-	bool intersect(Ray ray, float& ti);
+	bool intersect(Ray ray, float& ti, Vector3 &tmin, Vector3 &tmax);
+	bool inside(Vector3 point);
 	Vector3 getNormal(const Vector3 &hitPoint);
 	float getMinX() const;
 	float getMinY() const;
