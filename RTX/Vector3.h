@@ -30,6 +30,7 @@ public:
     void rotateY(float angle);
     void rotateZ(float angle);
     void normalize();
+    void clamp(Vector3 min, Vector3 max);
     float dot(const Vector3 &v) const { return this->_x * v.getX() + this->_y * v.getY() + this->_z * v.getZ(); }
     Vector3 cross(const Vector3 &v){ return Vector3(this->_y * v.getZ() - this->_z * v.getY(), -(this->_x * v.getZ() - this->_z * v.getX()), this->_x * v.getY() - this->_y * v.getX()); }
     Vector3 operator - () const { return Vector3(-this->_x, -this->_y, -this->_z); }

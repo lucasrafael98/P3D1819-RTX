@@ -33,3 +33,11 @@ void Vector3::normalize(){
         this->_x *= invNorm, this->_y *= invNorm, this->_z *= invNorm;
     }
 }
+void Vector3::clamp(Vector3 min, Vector3 max){
+    if(this->_x < min.getX()) this->_x = min.getX();
+    if(this->_y < min.getY()) this->_y = min.getY();
+    if(this->_z < min.getZ()) this->_z = min.getZ();
+    if(this->_x < max.getX()) this->_x = max.getX();
+    if(this->_y < max.getY()) this->_y = max.getY();
+    if(this->_z < max.getZ()) this->_z = max.getZ();
+}
