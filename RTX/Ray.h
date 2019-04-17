@@ -9,6 +9,7 @@
 class Ray{
 private:
     Vector3 _origin, _direction;
+    unsigned int _id;
 public:
 
     Ray();
@@ -18,6 +19,7 @@ public:
 
     Vector3 getDirection();
     Vector3 getOrigin();
+    unsigned int getID();
 
 };
 

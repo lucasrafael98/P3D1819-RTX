@@ -8,6 +8,7 @@
 class Cell{
 private:
     std::vector<SceneObject*> _objects;
+    std::vector<unsigned int> _ids;
     BBox* _bbox;
 public:
     Cell();
@@ -15,6 +16,9 @@ public:
     std::vector<SceneObject*> getObjects();
     BBox* getBBox();
     void addObject(SceneObject* object);
+    void addID(unsigned int id);
+    unsigned int getLastID(int i);
+    void setLastID(int i, unsigned int newID);
 };
 
 #endif

@@ -30,8 +30,8 @@
 #define DOF_ON true
 // 0/1/2: off/jitter/montecarlo
 #define AA_MODE 1
-// 0/1/2: off/random/area
-#define SOFT_SHADOWS 0
+// 0/1/2: off/random/area/area2
+#define SOFT_SHADOWS 2
 
 #define MAX_DEPTH 6
 #define SAMPLES 2
@@ -144,7 +144,7 @@ static float getShadow(const Vector3 *point, const Light *light, const std::vect
 }
 
 static float getShadowFactor(const Vector3 *point, const Light *light, const std::vector<SceneObject*> &objects) {
-	if(SOFT_SHADOWS == 2){
+	if(SOFT_SHADOWS == 3){
 		//std::vector<Vector3> r;
 		std::vector<Vector3> s;
 		for (int p = 0; p < SAMPLES; p++) {
@@ -212,7 +212,7 @@ Color getMLighting(const SceneObject &object, const Vector3 *point, const Vector
 	Color rayColor;
 	// Compute illumination with shadows
 	for (unsigned int i = 0; i < lights.size(); i++) {
-		float shadowFactor = getShadow(point, lights[i], objects);
+		float shadowFactor = getShadowFactor(point, lights[i], objects);
 		rayColor = rayColor + getLighting(object, point, normal, view, lights[i]) * (1.0 - shadowFactor);
 	}
 	
@@ -545,6 +545,7 @@ void renderScene()
 	if(draw_mode == 2) //preenchar o conteudo da janela com uma imagem completa
 		 drawPoints();
 
+	Sphere::printTotalIntersections();
 	printf("All done!\n"); 
 	draw = false;
 }
