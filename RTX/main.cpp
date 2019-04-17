@@ -28,16 +28,16 @@
 
 #define GRID_ON true
 // 0/1/2: off/jitter/montecarlo
-#define AA_MODE 0
-// 0/1/2: off/random/area
-#define SOFT_SHADOWS 0
+#define AA_MODE 1
+// 0/1/2: off/random/area/area2
+#define SOFT_SHADOWS 2
 
 #define MAX_DEPTH 6
 #define SAMPLES 2
 #define AREA_LIGHT 0.1
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
-#define NFF "NFF/balls_high.nff"
+#define NFF "NFF/balls_low.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
@@ -108,7 +108,7 @@ static float getShadow(const Vector3 *point, const Light *light, const std::vect
 }
 
 static float getShadowFactor(const Vector3 *point, const Light *light, const std::vector<SceneObject*> &objects) {
-	if(SOFT_SHADOWS == 2){
+	if(SOFT_SHADOWS == 3){
 		//std::vector<Vector3> r;
 		std::vector<Vector3> s;
 		for (int p = 0; p < SAMPLES; p++) {
@@ -176,7 +176,7 @@ Color getMLighting(const SceneObject &object, const Vector3 *point, const Vector
 	Color rayColor;
 	// Compute illumination with shadows
 	for (unsigned int i = 0; i < lights.size(); i++) {
-		float shadowFactor = getShadow(point, lights[i], objects);
+		float shadowFactor = getShadowFactor(point, lights[i], objects);
 		rayColor = rayColor + getLighting(object, point, normal, view, lights[i]) * (1.0 - shadowFactor);
 	}
 	
