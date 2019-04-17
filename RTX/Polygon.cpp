@@ -10,6 +10,7 @@ Polygon::Polygon(float r, float g, float b, float diff,
                         Vector3 normal = sub21.cross(sub31);
                         this->_normal = new Vector3(normal.getX(), normal.getY(), normal.getZ());
                         this->_normal->normalize();
+                        this->setBBox(this->createBBox());
                   }
 Polygon::~Polygon(){
     for(Vector3* vec: this->_verts)
@@ -48,4 +49,23 @@ bool Polygon::intersect(Ray ray, float& ti){
     }
     else
         return false;
+}
+
+BBox* Polygon::createBBox(){
+    Vector3 min(std::numeric_limits<float>::max(),
+                std::numeric_limits<float>::max(),
+                std::numeric_limits<float>::max());
+    Vector3 max(std::numeric_limits<float>::min(),
+                std::numeric_limits<float>::min(),
+                std::numeric_limits<float>::min());
+    for(Vector3* vert: this->_verts){
+        if(vert->getX() < min.getX()) min.setX(vert->getX());
+        if(vert->getY() < min.getY()) min.setY(vert->getY());
+        if(vert->getZ() < min.getZ()) min.setZ(vert->getZ());
+        if(vert->getX() > max.getX()) max.setX(vert->getX());
+        if(vert->getY() > max.getY()) max.setY(vert->getY());
+        if(vert->getZ() > max.getZ()) max.setZ(vert->getZ());
+    }
+    return new BBox(min.getX(), max.getX(), min.getY(),
+                max.getY(), min.getZ(), max.getZ());
 }

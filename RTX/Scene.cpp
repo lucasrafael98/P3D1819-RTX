@@ -118,7 +118,7 @@ void Scene::loadNFF(std::string filename){
                              material[6], material[7], verts, norms));
         }
         else if(lin_proc.at(0) == std::string("pl")){
-            this->_objects.push_back(
+            this->_planes.push_back(
                 new Plane(material[0], material[1], material[2],
                              material[3], material[4], material[5], 
                              material[6], material[7],
@@ -163,4 +163,5 @@ Color* Scene::getBGColor(){ return this->_bgColor; }
 Grid* Scene::getGrid(){ return this->_grid; }
 Light* Scene::getLight(int i){ return this->_lights.at(i); }
 std::vector<Light*> Scene::getLights(){ return this->_lights; }
+std::vector<Plane*> Scene::getPlanes(){ return this->_planes; }
 std::vector<SceneObject*> Scene::getObjectVector(){ return this->_objects; }

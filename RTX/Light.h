@@ -2,9 +2,11 @@
 #define LIGHT_H
 #include "Vector3.h"
 #include "Color.h"
+#include <vector>
 
 class Light {
 private:
+    std::vector<Vector3*> _altpos;
     Vector3* _pos;
     Color* _color;
 
@@ -16,7 +18,8 @@ public:
     Vector3* getPosition() const;
     Color* getColor() const;
     float attenuate(const float &r) const;
-
+    void computeAreaLight(int samples, float area);
+    Vector3* getAlternatePos(int i);
 };
 
 #endif

@@ -26,6 +26,7 @@ private:
     Color* _bgColor;
     std::vector<Light*> _lights;
     std::vector<SceneObject*> _objects;
+    std::vector<Plane*> _planes;
     Grid* _grid;
 public:
 
@@ -37,6 +38,7 @@ public:
     Grid* getGrid();
     Light* getLight(int i);
     std::vector<Light*> getLights();
+    std::vector<Plane*> getPlanes();
     std::vector<SceneObject*> getObjectVector();
 
 };

@@ -1,4 +1,4 @@
- ///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
 //
 // P3D Course
 // (c) 2016 by Joao Madeiras Pereira
@@ -26,7 +26,7 @@
 #define VERTEX_COORD_ATTRIB 0
 #define COLOR_ATTRIB 1
 
-#define GRID_ON false
+#define GRID_ON true
 // 0/1/2: off/jitter/montecarlo
 #define AA_MODE 1
 // 0/1/2: off/random/area
@@ -91,8 +91,6 @@ static float getShadow(const Vector3 *point, const Light *light, const std::vect
 		float ti = INFINITY;
 		if(scene->getGrid()->intersect(shadowRay, ti))
 			return 1.0f;
-		else
-			return 0.0f;
 	}
 	else{
 		for (unsigned int j = 0; j < objects.size(); j++) {
@@ -101,6 +99,10 @@ static float getShadow(const Vector3 *point, const Light *light, const std::vect
 				return 1.0f;
 			}
 		}
+	}
+	for(Plane* p: scene->getPlanes()){
+		float ti = INFINITY;
+		if(p->intersect(shadowRay, ti)) return 1.0f;
 	}
 	return 0.0f;
 }
@@ -130,7 +132,8 @@ static float getShadowFactor(const Vector3 *point, const Light *light, const std
 		float shadowFactor = 0.0f;
 		for(unsigned int i = 0; i != s.size(); i++){
 			//point = r.at(i);
-			Light sl = Light(s.at(i).getX(), s.at(i).getY(), s.at(i).getZ());
+			Light sl = Light(s.at(i).getX(), s.at(i).getY(), s.at(i).getZ(),
+							light->getColor()->getR(), light->getColor()->getG(), light->getColor()->getB());
 			shadowFactor += getShadow(point, &sl, objects);
 		}
 		shadowFactor /= s.size();
@@ -173,21 +176,24 @@ Color getMLighting(const SceneObject &object, const Vector3 *point, const Vector
 	Color rayColor;
 	// Compute illumination with shadows
 	for (unsigned int i = 0; i < lights.size(); i++) {
-		float shadowFactor = getShadowFactor(point, lights[i], objects);
+		float shadowFactor = getShadow(point, lights[i], objects);
 		rayColor = rayColor + getLighting(object, point, normal, view, lights[i]) * (1.0 - shadowFactor);
 	}
 	
 	return rayColor;
 }
 
-Color rayTracing( Ray ray, int depth, float RefrIndex)
+Color rayTracing( Ray ray, int depth, float RefrIndex, const std::vector<Light*> lights)
 {
 	if(depth > MAX_DEPTH) return *(scene->getBGColor());
 	Color rayColor;
 	SceneObject* hit = nullptr;
 	float tnear = INFINITY;
-	if(GRID_ON)
+	if(GRID_ON){
 		hit = scene->getGrid()->intersect(ray, tnear);
+		// tNear gets updated with the grid's BB even if no objects are hit. We don't want that. 
+		if(!hit) tnear = INFINITY;
+	}
 	else{
 		std::vector<SceneObject*> objects = scene->getObjectVector();
 		for(SceneObject* so: objects){
@@ -200,6 +206,18 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 			}
 		}
 	}
+	// We check plane intersections independently of grid being on or not.
+	// This because planes are infinite and can't be contained in a BB for grid traversal.
+	std::vector<Plane*> planes = scene->getPlanes();
+	for(Plane* so: planes){
+		float ti = INFINITY;
+		if(so->intersect(ray, ti)){
+			if (ti < tnear) {
+				tnear = ti;
+				hit = so;
+			}
+		}
+	}
 	if (!hit) {
 		return *(scene->getBGColor());
 	}
@@ -208,8 +226,7 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 	N.normalize();
 	Vector3 V(*(scene->getCamera()->getEye()) - hitPoint);
 	V.normalize();
-
-	rayColor = rayColor + getMLighting(*hit, &hitPoint, N, V, scene->getLights(), scene->getObjectVector());
+	rayColor = rayColor + getMLighting(*hit, &hitPoint, N, V, lights, scene->getObjectVector());
 
 	Vector3 dir(ray.getDirection());
 	float RdotN = dir.dot(N);
@@ -230,7 +247,7 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 
 		Ray rRay(hitPoint + N * 0.0001f, R);
 		//float VdotR =  std::max(0.0f, V.dot(-R)); unused var warning
-		Color reflectionColor = rayTracing(rRay,  depth + 1, RefrIndex); //* VdotR;
+		Color reflectionColor = rayTracing(rRay,  depth + 1, RefrIndex, lights); //* VdotR;
 		rayColor = rayColor + reflectionColor * hit->getMaterial()->getSpecular();
 	}
 
@@ -246,12 +263,37 @@ Color rayTracing( Ray ray, int depth, float RefrIndex)
 			R.normalize();
 
 			Ray rRay(hitPoint + R * 0.0001f, R);
-			Color refractionColor = rayTracing(rRay, depth + 1, rIndexDest);
+			Color refractionColor = rayTracing(rRay, depth + 1, rIndexDest, lights);
 
 			rayColor = rayColor + refractionColor * hit->getMaterial()->getTransmittance();
 		}
 	}
 	return rayColor;
+}
+
+Color jittering(int x, int y) {
+	Ray ray;
+	Color color = Color(0.0, 0.0, 0.0);
+	int i = 0;
+	for (int p = 0; p < SAMPLES; p++) {
+		for (int q = 0; q < SAMPLES; q++) {
+			std::vector<Light*> lights;
+			if(SOFT_SHADOWS == 2){
+				for(Light* l: scene->getLights()){
+					Vector3* altpos = l->getAlternatePos(i);
+					lights.push_back(new Light(altpos->getX(), altpos->getY(), altpos->getZ(),
+												l->getColor()->getR(), l->getColor()->getG(), l->getColor()->getB()));
+				}
+			}
+			else lights = scene->getLights();
+			float randomFactor = ((float)rand() / (RAND_MAX)); //0 < random < 1
+			ray = computePrimaryRay(x + ((p + randomFactor) / SAMPLES), y + ((q + randomFactor) / SAMPLES));
+			color = color + rayTracing(ray, 1, 1.0, lights);
+			if(SOFT_SHADOWS == 2) for(Light* al: lights) delete al;
+			i++;
+		}
+	}
+	return Color(color.getR() / i, color.getG() / i, color.getB() / i);
 }
 
 /////////////////////////////////////////////////////////////////////// ERRORS
@@ -405,21 +447,6 @@ void drawPoints()
 
 /////////////////////////////////////////////////////////////////////// CALLBACKS
 
-
-Color jittering(int x, int y) {
-	Ray ray;
-	Color color = Color(0.0, 0.0, 0.0);
-	for (int p = 0; p < SAMPLES; p++) {
-		for (int q = 0; q < SAMPLES; q++) {
-			float randomFactor = ((float)rand() / (RAND_MAX)); //0 < random < 1
-			ray = computePrimaryRay(x + ((p + randomFactor) / SAMPLES), y + ((q + randomFactor) / SAMPLES));
-			color = color + rayTracing(ray, 1, 1.0);
-		}
-	}
-	int ns2 = (SAMPLES * SAMPLES);
-	return Color(color.getR() / ns2, color.getG() / ns2, color.getB() / ns2);
-}
-
 // Render function by primary ray casting from the eye towards the scene's objects
 
 void renderScene()
@@ -437,7 +464,7 @@ void renderScene()
 				color = jittering(x, y);
 			else{
 				Ray ray = computePrimaryRay(x, y);
-				color = rayTracing(ray, 1, 1.0 );
+				color = rayTracing(ray, 1, 1.0, scene->getLights());
 			}	
 			vertices[index_pos++]= (float)x;
 			vertices[index_pos++]= (float)y;
@@ -560,6 +587,9 @@ int main(int argc, char* argv[])
 	scene = new Scene(std::string(NFF));
 	RES_X = scene->getCamera()->getResX();
 	RES_Y = scene->getCamera()->getResY();
+	if(SOFT_SHADOWS == 2)
+		for(Light* l: scene->getLights())
+			l->computeAreaLight(SAMPLES, AREA_LIGHT);
 
 	if(draw_mode == 0) { // desenhar o conteudo da janela ponto a ponto
 		size_vertices = 2*sizeof(float);
