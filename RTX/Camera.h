@@ -23,10 +23,16 @@ public:
     Vector3* getEye();
     Vector3* getAt();
     Vector3* getUp();
+	Vector3* getU();
+	Vector3* getV();
+	Vector3* getN();
     float getResX();
     float getResY();
     float getFOV();
     float getNear();
+	float getDF();
+	float getH();
+	float getW();
     Vector3 computeRayDirection(float x, float y);
 };
 

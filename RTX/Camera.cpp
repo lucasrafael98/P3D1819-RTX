@@ -37,7 +37,13 @@ Vector3* Camera::getUp(){ return this->_up;}
 float Camera::getResX(){ return this->_resx;}
 float Camera::getResY(){ return this->_resy;}
 float Camera::getFOV(){ return this->_fov;}
-float Camera::getNear(){ return this->_near;}
+float Camera::getNear() { return this->_near; }
+float Camera::getDF() { return this->_df; }
+float Camera::getH() { return this->_h; }
+float Camera::getW(){ return this->_w;}
+Vector3* Camera::getV() { return this->_ye; }
+Vector3* Camera::getU() { return this->_xe; }
+Vector3* Camera::getN() { return this->_ze; }
 
 Vector3 Camera::computeRayDirection(float x, float y){
     Vector3 dirx = *(this->_xe) * this->_w * (x / this->_resx - 0.5);

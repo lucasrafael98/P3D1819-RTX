@@ -1,5 +1,9 @@
 #include "Grid.h"
 
+int clamp(int n, int lower, int upper) {
+	return std::max(lower, std::min(n, upper));
+}
+
 Grid::Grid(std::vector<SceneObject*> objects){
     // creating the grid's bbox
     // start with opposite values and change as required by object bboxes
@@ -36,27 +40,27 @@ Grid::Grid(std::vector<SceneObject*> objects){
 
     // fill cells with objects
     for(unsigned int i = 0; i < objects.size(); i++){
-        int ixmin = std::clamp(int
+        int ixmin = clamp(int
                         ((objects.at(i)->getBBox()->getMinX() - this->_bbox->getMinX())
                             * (this->_cellnum->getX() / this->_dimensions->getX())),
                         0,int(this->_cellnum->getX() - 1));
-        int iymin = std::clamp(int
+        int iymin = clamp(int
                         ((objects.at(i)->getBBox()->getMinY() - this->_bbox->getMinY())
                             * (this->_cellnum->getY() / this->_dimensions->getY())),
                         0,int(this->_cellnum->getY() - 1));
-        int izmin = std::clamp(int
+        int izmin = clamp(int
                         ((objects.at(i)->getBBox()->getMinZ() - this->_bbox->getMinZ())
                             * (this->_cellnum->getZ() / this->_dimensions->getZ())),
                         0,int(this->_cellnum->getZ() - 1));
-        int ixmax = std::clamp(int
+        int ixmax = clamp(int
                         ((objects.at(i)->getBBox()->getMaxX() - this->_bbox->getMinX())
                             * (this->_cellnum->getX() / this->_dimensions->getX())),
                         0,int(this->_cellnum->getX() - 1));
-        int iymax = std::clamp(int
+        int iymax = clamp(int
                         ((objects.at(i)->getBBox()->getMaxY() - this->_bbox->getMinY())
                             * (this->_cellnum->getY() / this->_dimensions->getY())),
                         0,int(this->_cellnum->getY() - 1));
-        int izmax = std::clamp(int
+        int izmax = clamp(int
                         ((objects.at(i)->getBBox()->getMaxZ() - this->_bbox->getMinZ())
                             * (this->_cellnum->getZ() / this->_dimensions->getZ())),
                         0,int(this->_cellnum->getZ() - 1));
@@ -91,15 +95,15 @@ SceneObject* Grid::intersect(Ray ray, float &t0){
     int ix, iy, iz;
     // Check if ray is inside the grid already
     if(this->_bbox->inside(ray.getOrigin())){
-        ix = std::clamp(int
+        ix = clamp(int
                     ((ray.getOrigin().getX() - this->_bbox->getMinX())
                     * (this->_cellnum->getX() / this->_dimensions->getX())),
                     0, int(this->_cellnum->getX() - 1));
-        iy = std::clamp(int
+        iy = clamp(int
                     ((ray.getOrigin().getY() - this->_bbox->getMinY())
                     * (this->_cellnum->getY() / this->_dimensions->getY())),
                     0, int(this->_cellnum->getY() - 1));
-        iz = std::clamp(int
+        iz = clamp(int
                     ((ray.getOrigin().getZ() - this->_bbox->getMinZ())
                     * (this->_cellnum->getZ() / this->_dimensions->getZ())),
                     0, int(this->_cellnum->getZ() - 1));
@@ -107,15 +111,15 @@ SceneObject* Grid::intersect(Ray ray, float &t0){
     // otherwise find the ray-grid intersection point 
     else{
         Vector3 p = ray.getOrigin() + ray.getDirection() * t0;
-        ix = std::clamp(int
+        ix = clamp(int
                     ((p.getX() - this->_bbox->getMinX())
                     * (this->_cellnum->getX() / this->_dimensions->getX())),
                     0, int(this->_cellnum->getX() - 1));
-        iy = std::clamp(int
+        iy = clamp(int
                     ((p.getY() - this->_bbox->getMinY())
                     * (this->_cellnum->getY() / this->_dimensions->getY())),
                     0, int(this->_cellnum->getY() - 1));
-        iz = std::clamp(int
+        iz = clamp(int
                     ((p.getZ() - this->_bbox->getMinZ())
                     * (this->_cellnum->getZ() / this->_dimensions->getZ())),
                     0, int(this->_cellnum->getZ() - 1));
