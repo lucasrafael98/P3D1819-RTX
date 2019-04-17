@@ -28,16 +28,16 @@
 
 #define GRID_ON true
 // 0/1/2: off/jitter/montecarlo
-#define AA_MODE 1
+#define AA_MODE 0
 // 0/1/2: off/random/area
-#define SOFT_SHADOWS 2
+#define SOFT_SHADOWS 0
 
 #define MAX_DEPTH 6
 #define SAMPLES 2
 #define AREA_LIGHT 0.1
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
-#define NFF "NFF/balls_low.nff"
+#define NFF "NFF/mount_very_high.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
