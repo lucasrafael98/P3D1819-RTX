@@ -10,6 +10,7 @@ class SceneObject{
 private:
     Material* _mtl;
     BBox* _bbox;
+    unsigned int _lastID = 0;
 public:
     SceneObject(float r, float g, float b, float diff,
                  float spec, float shine, float transm,
@@ -21,6 +22,8 @@ public:
     virtual BBox* createBBox();
     BBox* getBBox() const;
     void setBBox(BBox* bbox);
+    unsigned int getLastID();
+    void setLastID(unsigned int newID);
 };
 
 #endif

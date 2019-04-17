@@ -16,3 +16,5 @@ BBox* SceneObject::createBBox(){ return new BBox(); }
 Material* SceneObject::getMaterial() const{ return this->_mtl; }
 BBox* SceneObject::getBBox() const{ return this->_bbox; }
 void SceneObject::setBBox(BBox* bbox){ this->_bbox = bbox; }
+unsigned int SceneObject::getLastID(){ return this->_lastID; }
+void SceneObject::setLastID(unsigned int newID){ this->_lastID = newID; }

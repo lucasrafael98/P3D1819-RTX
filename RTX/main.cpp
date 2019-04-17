@@ -37,7 +37,7 @@
 #define AREA_LIGHT 0.1
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
-#define NFF "NFF/mount_very_high.nff"
+#define NFF "NFF/balls_high.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
@@ -489,6 +489,7 @@ void renderScene()
 	if(draw_mode == 2) //preenchar o conteudo da janela com uma imagem completa
 		 drawPoints();
 
+	Sphere::printTotalIntersections();
 	printf("All done!\n"); 
 	draw = false;
 }
