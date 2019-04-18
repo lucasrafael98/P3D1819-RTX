@@ -27,17 +27,21 @@
 #define COLOR_ATTRIB 1
 
 #define GRID_ON true
+#define DOF_ON false
 // 0/1/2: off/jitter/montecarlo
-#define AA_MODE 1
+#define AA_MODE 0
 // 0/1/2: off/random/area/area2
-#define SOFT_SHADOWS 2
+#define SOFT_SHADOWS 0
 
 #define MAX_DEPTH 6
 #define SAMPLES 2
 #define AREA_LIGHT 0.1
+#define DOF_SAMPLES 5
+#define FOCAL_DISTANCE 1.5f
+#define APERTURE 20.0f
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
-#define NFF "NFF/balls_low.nff"
+#define NFF "NFF/goodScene.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
@@ -68,9 +72,45 @@ bool draw = true;
 
 Ray computePrimaryRay(float x, float y){
 	Vector3 rayOrigin = Vector3(scene->getCamera()->getEye());
-	Vector3 rayDirection = scene->getCamera()->computeRayDirection(x,y);
-	return Ray(rayOrigin.getX(), rayOrigin.getY(), rayOrigin.getZ(),
-				rayDirection.getX(), rayDirection.getY(), rayDirection.getZ());
+	Vector3 rayDirection;
+	if (DOF_ON) {
+		Vector3 L;
+		bool notInLens = false;
+
+		float rnd_val = (float)rand() / (float)RAND_MAX;
+		float angle = rnd_val * 2 * M_PI;
+		double r = (APERTURE / 2) * sqrt((float)rand() / (float)RAND_MAX);
+
+		//Lens point
+		L = Vector3(scene->getCamera()->getW() * (r * cos(angle) / scene->getCamera()->getResX()),
+			scene->getCamera()->getH() * (r * sin(angle) / scene->getCamera()->getResY()),
+			0.0f);
+
+		//New ray origin
+		Vector3 newOrigin = *(scene->getCamera()->getU())*L.getX() + *(scene->getCamera()->getV()) * L.getY() + *(scene->getCamera()->getEye());
+
+		//View plane point
+		Vector3 viewPoint = Vector3(scene->getCamera()->getW() * (((x + 0.5f) / scene->getCamera()->getResX()) - 0.5f),
+			scene->getCamera()->getH() * (((y + 0.5f) / scene->getCamera()->getResY()) - 0.5f),
+			-scene->getCamera()->getDF());
+
+		//Focal plane point
+		Vector3 focalPoint = Vector3(viewPoint.getX() * (FOCAL_DISTANCE / scene->getCamera()->getDF()),
+			viewPoint.getY() * (FOCAL_DISTANCE / scene->getCamera()->getDF()),
+			-FOCAL_DISTANCE);
+		//New ray direction
+		Vector3 newDirection = Vector3( *(scene->getCamera()->getU())*(focalPoint.getX() - L.getX()) +
+			 *(scene->getCamera()->getV())*(focalPoint.getY() - L.getY()) +
+			 *(scene->getCamera()->getN())*(focalPoint.getZ() - L.getZ()));
+
+		newDirection.normalize();
+		return Ray(newOrigin.getX(), newOrigin.getY(), newOrigin.getZ(), newDirection.getX(), newDirection.getY(), newDirection.getZ());
+
+	}
+	else {
+		rayDirection = scene->getCamera()->computeRayDirection(x, y);
+		return Ray(rayOrigin.getX(), rayOrigin.getY(), rayOrigin.getZ(),rayDirection.getX(), rayDirection.getY(), rayDirection.getZ());
+	}
 }
 
 static float getShadow(const Vector3 *point, const Light *light, const std::vector<SceneObject*> &objects) {
@@ -287,8 +327,19 @@ Color jittering(int x, int y) {
 			}
 			else lights = scene->getLights();
 			float randomFactor = ((float)rand() / (RAND_MAX)); //0 < random < 1
-			ray = computePrimaryRay(x + ((p + randomFactor) / SAMPLES), y + ((q + randomFactor) / SAMPLES));
-			color = color + rayTracing(ray, 1, 1.0, lights);
+			if (DOF_ON) {
+				Color aux;
+				for (int j = 0; j < DOF_SAMPLES; j++) {
+					Ray DOFray = computePrimaryRay(x + ((p + randomFactor) / SAMPLES), y + ((q + randomFactor) / SAMPLES));
+					aux = aux + rayTracing(DOFray, 1, 1.0, lights);
+				}
+				aux = aux / DOF_SAMPLES;
+				color = color + aux;
+			}
+			else {
+				ray = computePrimaryRay(x + ((p + randomFactor) / SAMPLES), y + ((q + randomFactor) / SAMPLES));
+				color = color + rayTracing(ray, 1, 1.0, lights);
+			}
 			if(SOFT_SHADOWS == 2) for(Light* al: lights) delete al;
 			i++;
 		}
@@ -463,8 +514,17 @@ void renderScene()
 			if(AA_MODE == 1)
 				color = jittering(x, y);
 			else{
-				Ray ray = computePrimaryRay(x, y);
-				color = rayTracing(ray, 1, 1.0, scene->getLights());
+				if (DOF_ON) {
+					for (int i = 0; i < DOF_SAMPLES; ++i) {
+						Ray DOFray = computePrimaryRay(x, y);
+						color = color + rayTracing(DOFray, 1, 1.0, scene->getLights());
+					}
+					color = color / DOF_SAMPLES;
+				}
+				else {
+					Ray ray = computePrimaryRay(x, y);
+					color = rayTracing(ray, 1, 1.0, scene->getLights());
+				}
 			}	
 			vertices[index_pos++]= (float)x;
 			vertices[index_pos++]= (float)y;
