@@ -27,19 +27,18 @@
 #define COLOR_ATTRIB 1
 
 #define GRID_ON true
-#define DOF_ON true
+#define DOF_ON false
 // 0/1/2: off/jitter/montecarlo
-#define AA_MODE 1
+#define AA_MODE 0
 // 0/1/2: off/random/area/area2
-#define SOFT_SHADOWS 2
+#define SOFT_SHADOWS 0
 
 #define MAX_DEPTH 6
 #define SAMPLES 2
 #define AREA_LIGHT 0.1
-#define LENS_RADIUS 1
-#define DOF_SAMPLES 3
+#define DOF_SAMPLES 5
 #define FOCAL_DISTANCE 1.5f
-#define APERTURE 7.0f
+#define APERTURE 20.0f
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
 #define NFF "NFF/distant_balls.nff"
@@ -75,13 +74,18 @@ Ray computePrimaryRay(float x, float y){
 	Vector3 rayOrigin = Vector3(scene->getCamera()->getEye());
 	Vector3 rayDirection;
 	if (DOF_ON) {
+		Vector3 L;
+		bool notInLens = false;
+
 		float rnd_val = (float)rand() / (float)RAND_MAX;
 		float angle = rnd_val * 2 * M_PI;
-		
+		double r = (APERTURE / 2) * sqrt((float)rand() / (float)RAND_MAX);
+
 		//Lens point
-		Vector3 L = Vector3(scene->getCamera()->getW() * (rnd_val * cos(angle) / scene->getCamera()->getResX()) * APERTURE,
-			scene->getCamera()->getH() * (rnd_val * sin(angle) / scene->getCamera()->getResY()) * APERTURE,
+		L = Vector3(scene->getCamera()->getW() * (r * cos(angle) / scene->getCamera()->getResX()),
+			scene->getCamera()->getH() * (r * sin(angle) / scene->getCamera()->getResY()),
 			0.0f);
+
 		//New ray origin
 		Vector3 newOrigin = *(scene->getCamera()->getU())*L.getX() + *(scene->getCamera()->getV()) * L.getY() + *(scene->getCamera()->getEye());
 
@@ -326,8 +330,8 @@ Color jittering(int x, int y) {
 			if (DOF_ON) {
 				Color aux;
 				for (int j = 0; j < DOF_SAMPLES; j++) {
-					Ray ray = computePrimaryRay(x + ((p + randomFactor) / SAMPLES), y + ((q + randomFactor) / SAMPLES));
-					aux = aux + rayTracing(ray, 1, 1.0, lights);
+					Ray DOFray = computePrimaryRay(x + ((p + randomFactor) / SAMPLES), y + ((q + randomFactor) / SAMPLES));
+					aux = aux + rayTracing(DOFray, 1, 1.0, lights);
 				}
 				aux = aux / DOF_SAMPLES;
 				color = color + aux;
@@ -511,9 +515,9 @@ void renderScene()
 				color = jittering(x, y);
 			else{
 				if (DOF_ON) {
-					for (int i = 0; i < DOF_SAMPLES; i++) {
-						Ray ray = computePrimaryRay(x, y);
-						color = color + rayTracing(ray, 1, 1.0, scene->getLights());
+					for (int i = 0; i < DOF_SAMPLES; ++i) {
+						Ray DOFray = computePrimaryRay(x, y);
+						color = color + rayTracing(DOFray, 1, 1.0, scene->getLights());
 					}
 					color = color / DOF_SAMPLES;
 				}
