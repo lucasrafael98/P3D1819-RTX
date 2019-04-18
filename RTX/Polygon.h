@@ -13,6 +13,9 @@ public:
     Polygon(float r, float g, float b, float diff,
             float spec, float shine, float transm,
             float refidx, std::vector<Vector3*> verts);
+	Polygon(float r, float g, float b, float diff,
+		float spec, float shine, float transm,
+		float refidx, std::vector<Vector3*> verts, Vector3* normal);
     ~Polygon();
 
     Vector3* getVertex(int i);

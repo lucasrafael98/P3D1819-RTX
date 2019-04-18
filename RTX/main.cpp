@@ -41,7 +41,7 @@
 #define APERTURE 20.0f
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
-#define NFF "NFF/distant_balls.nff"
+#define NFF "NFF/goodScene.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;

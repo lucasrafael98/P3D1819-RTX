@@ -12,6 +12,13 @@ Polygon::Polygon(float r, float g, float b, float diff,
                         this->_normal->normalize();
                         this->setBBox(this->createBBox());
                   }
+Polygon::Polygon(float r, float g, float b, float diff,
+	float spec, float shine, float transm,
+	float refidx, std::vector<Vector3*> verts, Vector3* normal) :
+	SceneObject(r, g, b, diff, spec, shine, transm, refidx),
+	_verts(verts), _normal(normal) {
+	this->setBBox(this->createBBox());
+}
 Polygon::~Polygon(){
     for(Vector3* vec: this->_verts)
         delete vec;

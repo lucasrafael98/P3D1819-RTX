@@ -117,6 +117,54 @@ void Scene::loadNFF(std::string filename){
                              material[3], material[4], material[5], 
                              material[6], material[7], verts, norms));
         }
+		else if (lin_proc.at(0) == std::string("ply")) {
+			std::vector<Vector3*> raw_verts;
+			std::vector<Vector3*> raw_normals;
+			std::vector<int> face_indices;
+			std::ifstream ply(std::string("NFF/" + lin_proc.at(1)));
+			std::string line_ply;
+			bool hended = false;
+			while (std::getline(ply, line_ply)) {
+				std::vector<std::string> lin_proc_ply = tokenizeLine(line_ply);
+				if (hended) {
+					if (lin_proc_ply.size() == 6) {
+						raw_verts.push_back(new Vector3(stof(lin_proc_ply.at(0)), stof(lin_proc_ply.at(1)), stof(lin_proc_ply.at(2))));
+						raw_normals.push_back(new Vector3(stof(lin_proc_ply.at(3)), stof(lin_proc_ply.at(4)), stof(lin_proc_ply.at(5))));
+					}
+					else if (lin_proc_ply.size() == 4) {
+						face_indices.push_back(stoi(lin_proc_ply.at(1)));
+						face_indices.push_back(stoi(lin_proc_ply.at(2)));
+						face_indices.push_back(stoi(lin_proc_ply.at(3)));
+					}
+					else {
+						std::cout << "WTF NOOO" << std::endl;
+					}
+				}
+				else {
+					if (lin_proc_ply.at(0) == std::string("end_header")) {
+						hended = true;
+					}
+				}
+			}
+			std::cout << raw_verts.size() << raw_normals.size() << std::endl;
+			std::vector<std::vector<Vector3*>> verts;
+			std::vector<Vector3*> normals;
+			for (int i = 0; i != face_indices.size(); i+=3) {
+				std::vector<Vector3*> temp;
+				temp.push_back(raw_verts.at(face_indices.at(i)));
+				temp.push_back(raw_verts.at(face_indices.at(i+1)));
+				temp.push_back(raw_verts.at(face_indices.at(i+2)));
+				verts.push_back(temp);
+				normals.push_back(raw_normals.at(face_indices.at(i)));
+			}
+			std::cout << "OI: " << verts.size() << std::endl;
+			for (int i = 0; i != verts.size(); i++) {
+				this->_objects.push_back(
+					new Polygon(material[0], material[1], material[2],
+						material[3], material[4], material[5],
+						material[6], material[7], verts.at(i),normals.at(i)));
+			}
+		}
         else if(lin_proc.at(0) == std::string("pl")){
             this->_planes.push_back(
                 new Plane(material[0], material[1], material[2],
