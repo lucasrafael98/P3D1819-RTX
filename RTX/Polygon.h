@@ -22,6 +22,7 @@ public:
     Vector3 getNormal(const Vector3 &hitPoint) override;
     bool intersect(Ray ray, float& ti) override;
     BBox* createBBox() override;
+    static void printTotalIntersections();
 };
 
 #endif

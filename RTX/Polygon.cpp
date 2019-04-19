@@ -1,5 +1,8 @@
 #include "Polygon.h"
 
+static int rayTriTests = 0;
+static int rayTriIntersections = 0;
+
 Polygon::Polygon(float r, float g, float b, float diff,
                  float spec, float shine, float transm,
                  float refidx, std::vector<Vector3*> verts):
@@ -29,6 +32,7 @@ Vector3* Polygon::getVertex(int i){ return this->_verts.at(i); }
 Vector3 Polygon::getNormal(const Vector3 &hitPoint){ return *(this->_normal); }
 
 bool Polygon::intersect(Ray ray, float& ti){
+    rayTriTests++;
     Vector3 vertex0 = this->_verts.at(0);
     Vector3 vertex1 = this->_verts.at(1);  
     Vector3 vertex2 = this->_verts.at(2);
@@ -51,6 +55,7 @@ bool Polygon::intersect(Ray ray, float& ti){
     // Compute t, intersection point in the ray line.
     float t = f * edge2.dot(q);
     if (t > EPSILON){
+        rayTriIntersections++;
         ti = t;
         return true;
     }
@@ -76,3 +81,6 @@ BBox* Polygon::createBBox(){
     return new BBox(min.getX(), max.getX(), min.getY(),
                 max.getY(), min.getZ(), max.getZ());
 }
+
+void Polygon::printTotalIntersections(){std::cout << "Ray-Triangle Tests:\t\t" << rayTriTests << std::endl
+                                                << "Ray-Triangle Intersections:\t" << rayTriIntersections << std::endl; }

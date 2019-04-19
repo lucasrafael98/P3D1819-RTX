@@ -27,21 +27,21 @@
 #define COLOR_ATTRIB 1
 
 #define GRID_ON true
-#define DOF_ON false
+#define DOF_ON true
 // 0/1/2: off/jitter/montecarlo
 #define AA_MODE 0
 // 0/1/2: off/random/area/area2
 #define SOFT_SHADOWS 0
 
 #define MAX_DEPTH 6
-#define SAMPLES 2
-#define AREA_LIGHT 0.1
-#define DOF_SAMPLES 5
-#define FOCAL_DISTANCE 1.5f
+#define SAMPLES 4
+#define AREA_LIGHT 0.25
+#define DOF_SAMPLES 32
+#define FOCAL_DISTANCE 1.3f
 #define APERTURE 20.0f
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
-#define NFF "NFF/goodScene.nff"
+#define NFF "NFF/mount_high.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
@@ -75,7 +75,7 @@ Ray computePrimaryRay(float x, float y){
 	Vector3 rayDirection;
 	if (DOF_ON) {
 		Vector3 L;
-		bool notInLens = false;
+		//bool notInLens = false;
 
 		float rnd_val = (float)rand() / (float)RAND_MAX;
 		float angle = rnd_val * 2 * M_PI;
@@ -550,6 +550,7 @@ void renderScene()
 		 drawPoints();
 
 	Sphere::printTotalIntersections();
+	Polygon::printTotalIntersections();
 	printf("All done!\n"); 
 	draw = false;
 }

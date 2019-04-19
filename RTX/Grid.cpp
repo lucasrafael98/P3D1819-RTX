@@ -172,11 +172,16 @@ SceneObject* Grid::traverseGrid(Ray ray, Vector3 i, Vector3 tnext,
         std::vector<SceneObject*> objects = this->_cells.at(index)->getObjects();
         float tnear = INFINITY;
         for(unsigned int i = 0; i < objects.size(); i++){
+            if(ray.getID() == objects.at(i)->getLastIntrs()){
+                tnear = t0;
+                hit = objects.at(i);
+            }
             if(ray.getID() != objects.at(i)->getLastID()){
                 objects.at(i)->setLastID(ray.getID());
                 if(objects.at(i)->intersect(ray, t0)){
                     if(t0 < tnear){
                         objects.at(i)->setLastID(ray.getID() - 1);
+                        objects.at(i)->setLastIntrs(ray.getID());
                         tnear = t0;
                         hit = objects.at(i);
                     }
