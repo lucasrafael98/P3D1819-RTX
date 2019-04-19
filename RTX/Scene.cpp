@@ -155,7 +155,7 @@ void Scene::loadNFF(std::string filename){
 				temp.push_back(raw_verts.at(face_indices.at(i+1)));
 				temp.push_back(raw_verts.at(face_indices.at(i+2)));
 				verts.push_back(temp);
-				normals.push_back(raw_normals.at(face_indices.at(i)));
+				normals.push_back(raw_normals.at(face_indices.at(i+2)));
 			}
 			std::cout << "OI: " << verts.size() << std::endl;
 			for (unsigned int i = 0; i != verts.size(); i++) {

@@ -26,22 +26,22 @@
 #define VERTEX_COORD_ATTRIB 0
 #define COLOR_ATTRIB 1
 
-#define GRID_ON true
-#define DOF_ON true
+#define GRID_ON false
+#define DOF_ON false
 // 0/1/2: off/jitter/montecarlo
 #define AA_MODE 0
 // 0/1/2: off/random/area/area2
 #define SOFT_SHADOWS 0
 
 #define MAX_DEPTH 6
-#define SAMPLES 4
+#define SAMPLES 2
 #define AREA_LIGHT 0.25
 #define DOF_SAMPLES 32
-#define FOCAL_DISTANCE 1.3f
-#define APERTURE 20.0f
+#define FOCAL_DISTANCE 1.5f
+#define APERTURE 100.0f
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
-#define NFF "NFF/mount_high.nff"
+#define NFF "NFF/mount_low.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
@@ -90,8 +90,8 @@ Ray computePrimaryRay(float x, float y){
 		Vector3 newOrigin = *(scene->getCamera()->getU())*L.getX() + *(scene->getCamera()->getV()) * L.getY() + *(scene->getCamera()->getEye());
 
 		//View plane point
-		Vector3 viewPoint = Vector3(scene->getCamera()->getW() * (((x + 0.5f) / scene->getCamera()->getResX()) - 0.5f),
-			scene->getCamera()->getH() * (((y + 0.5f) / scene->getCamera()->getResY()) - 0.5f),
+		Vector3 viewPoint = Vector3(scene->getCamera()->getW() * (((x + rnd_val) / scene->getCamera()->getResX()) - 0.5f),
+			scene->getCamera()->getH() * (((y + rnd_val) / scene->getCamera()->getResY()) - 0.5f),
 			-scene->getCamera()->getDF());
 
 		//Focal plane point
@@ -100,8 +100,8 @@ Ray computePrimaryRay(float x, float y){
 			-FOCAL_DISTANCE);
 		//New ray direction
 		Vector3 newDirection = Vector3( *(scene->getCamera()->getU())*(focalPoint.getX() - L.getX()) +
-			 *(scene->getCamera()->getV())*(focalPoint.getY() - L.getY()) +
-			 *(scene->getCamera()->getN())*(focalPoint.getZ() - L.getZ()));
+			 *(scene->getCamera()->getV())*(focalPoint.getY() - L.getY()) -
+			 *(scene->getCamera()->getN())*(FOCAL_DISTANCE));
 
 		newDirection.normalize();
 		return Ray(newOrigin.getX(), newOrigin.getY(), newOrigin.getZ(), newDirection.getX(), newDirection.getY(), newDirection.getZ());
