@@ -14,16 +14,16 @@ Grid::Grid(std::vector<SceneObject*> objects){
                 std::numeric_limits<float>::min(),
                 std::numeric_limits<float>::min());
     for(SceneObject* so: objects){
-        if(so->getBBox()->getMinX() < min.getX()) min.setX(so->getBBox()->getMinX() - EPSILON);
-        if(so->getBBox()->getMinY() < min.getY()) min.setY(so->getBBox()->getMinY() - EPSILON);
-        if(so->getBBox()->getMinZ() < min.getZ()) min.setZ(so->getBBox()->getMinZ() - EPSILON);
+        if(so->getBBox()->getMinX() < min.getX()) min.setX(so->getBBox()->getMinX());
+        if(so->getBBox()->getMinY() < min.getY()) min.setY(so->getBBox()->getMinY());
+        if(so->getBBox()->getMinZ() < min.getZ()) min.setZ(so->getBBox()->getMinZ());
 
-        if(so->getBBox()->getMaxX() > max.getX()) max.setX(so->getBBox()->getMaxX() + EPSILON);
-        if(so->getBBox()->getMaxY() > max.getY()) max.setY(so->getBBox()->getMaxY() + EPSILON);
-        if(so->getBBox()->getMaxZ() > max.getZ()) max.setZ(so->getBBox()->getMaxZ() + EPSILON);
+        if(so->getBBox()->getMaxX() > max.getX()) max.setX(so->getBBox()->getMaxX());
+        if(so->getBBox()->getMaxY() > max.getY()) max.setY(so->getBBox()->getMaxY());
+        if(so->getBBox()->getMaxZ() > max.getZ()) max.setZ(so->getBBox()->getMaxZ());
     }
-    this->_bbox = new BBox(min.getX(), max.getX(), min.getY(),
-                            max.getY(), min.getZ(), max.getZ());
+    this->_bbox = new BBox(min.getX() - EPSILON, max.getX() + EPSILON, min.getY() - EPSILON,
+                            max.getY() + EPSILON, min.getZ() - EPSILON, max.getZ() + EPSILON);
     this->_dimensions = new Vector3(max - min);
 
     float s = std::pow((this->_dimensions->getX() * 
@@ -125,9 +125,9 @@ SceneObject* Grid::intersect(Ray ray, float &t0){
                     0, int(this->_cellnum->getZ() - 1));
     }
     Vector3 dt = (tmax - tmin) / *(this->_cellnum);
-    float tnextx, tnexty, tnextz, 
-            stepx, stepy, stepz,
-            stopx, stopy, stopz;
+    float tnextx, tnexty, tnextz; 
+    int stepx, stepy, stepz,
+        stopx, stopy, stopz;
     computeTnext(dt.getX(), tnextx, stepx, this->_cellnum->getX(),
                     stopx, ray.getDirection().getX(), ix, tmin.getX());
     computeTnext(dt.getY(), tnexty, stepy, this->_cellnum->getY(),
@@ -143,8 +143,8 @@ SceneObject* Grid::intersect(Ray ray, float &t0){
     return traverseGrid(ray, i, tnext, step, stop, dt, t0);
 }
 
-void Grid::computeTnext(float dt, float &tnext, float &step, float n,
-                        float &stop, float dir, float i, float tmin){
+void Grid::computeTnext(float dt, float &tnext, int &step, float n,
+                        int &stop, float dir, float i, float tmin){
     if(dir > 0){
         tnext = tmin + (i + 1) * dt;
         step = 1;
@@ -172,16 +172,11 @@ SceneObject* Grid::traverseGrid(Ray ray, Vector3 i, Vector3 tnext,
         std::vector<SceneObject*> objects = this->_cells.at(index)->getObjects();
         float tnear = INFINITY;
         for(unsigned int i = 0; i < objects.size(); i++){
-            if(ray.getID() == objects.at(i)->getLastIntrs()){
-                tnear = t0;
-                hit = objects.at(i);
-            }
-            if(ray.getID() != objects.at(i)->getLastID()){
+        if(ray.getID() != objects.at(i)->getLastID()){
                 objects.at(i)->setLastID(ray.getID());
                 if(objects.at(i)->intersect(ray, t0)){
                     if(t0 < tnear){
                         objects.at(i)->setLastID(ray.getID() - 1);
-                        objects.at(i)->setLastIntrs(ray.getID());
                         tnear = t0;
                         hit = objects.at(i);
                     }

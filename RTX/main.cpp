@@ -26,7 +26,7 @@
 #define VERTEX_COORD_ATTRIB 0
 #define COLOR_ATTRIB 1
 
-#define GRID_ON false
+#define GRID_ON true
 #define DOF_ON false
 // 0/1/2: off/jitter/montecarlo
 #define AA_MODE 0
@@ -41,7 +41,7 @@
 #define APERTURE 100.0f
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
-#define NFF "NFF/mount_low.nff"
+#define NFF "NFF/mount_high.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
@@ -149,14 +149,9 @@ static float getShadow(const Vector3 *point, const Light *light, const std::vect
 
 static float getShadowFactor(const Vector3 *point, const Light *light, const std::vector<SceneObject*> &objects) {
 	if(SOFT_SHADOWS == 3){
-		//std::vector<Vector3> r;
 		std::vector<Vector3> s;
 		for (int p = 0; p < SAMPLES; p++) {
 			for (int q = 0; q < SAMPLES; q++) {
-				/*float randomFactor = ((float)rand() / (RAND_MAX)); //0 < random < 1
-				r.push_back(Vector3(point->getX() + ((p + randomFactor)/SAMPLES*AREA_LIGHT),
-										point->getY() + ((q + randomFactor)/SAMPLES*AREA_LIGHT),
-										point->getZ()));*/
 				float randomFactor = ((float)rand() / (RAND_MAX)); //0 < random < 1
 				s.push_back(Vector3(light->getPosition()->getX() + ((p + randomFactor) * AREA_LIGHT),
 										light->getPosition()->getY() + ((q + randomFactor) * AREA_LIGHT),
@@ -171,7 +166,6 @@ static float getShadowFactor(const Vector3 *point, const Light *light, const std
 		}
 		float shadowFactor = 0.0f;
 		for(unsigned int i = 0; i != s.size(); i++){
-			//point = r.at(i);
 			Light sl = Light(s.at(i).getX(), s.at(i).getY(), s.at(i).getZ(),
 							light->getColor()->getR(), light->getColor()->getG(), light->getColor()->getB());
 			shadowFactor += getShadow(point, &sl, objects);

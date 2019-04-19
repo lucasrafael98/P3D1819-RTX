@@ -11,7 +11,6 @@ private:
     Material* _mtl;
     BBox* _bbox;
     unsigned int _lastID = 0;
-    unsigned int _lastIntrs = 0;
 public:
     SceneObject(float r, float g, float b, float diff,
                  float spec, float shine, float transm,
@@ -25,8 +24,6 @@ public:
     void setBBox(BBox* bbox);
     unsigned int getLastID();
     void setLastID(unsigned int newID);
-    unsigned int getLastIntrs();
-    void setLastIntrs(unsigned int newID);
 };
 
 #endif

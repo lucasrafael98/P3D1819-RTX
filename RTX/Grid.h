@@ -15,8 +15,8 @@ public:
     Grid(std::vector<SceneObject*> objects);
     ~Grid();
     SceneObject* intersect(Ray ray, float &t0);
-    void computeTnext(float dt, float &tnext, float &step, float n,
-                        float &stop, float dir, float i, float tmin);
+    void computeTnext(float dt, float &tnext, int &step, float n,
+                        int &stop, float dir, float i, float tmin);
     SceneObject* traverseGrid(Ray ray, Vector3 i, Vector3 tnext, 
                                 Vector3 step, Vector3 stop, Vector3 dt, float &t0);
 };

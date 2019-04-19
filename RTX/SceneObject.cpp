@@ -18,5 +18,3 @@ BBox* SceneObject::getBBox() const{ return this->_bbox; }
 void SceneObject::setBBox(BBox* bbox){ this->_bbox = bbox; }
 unsigned int SceneObject::getLastID(){ return this->_lastID; }
 void SceneObject::setLastID(unsigned int newID){ this->_lastID = newID; }
-unsigned int SceneObject::getLastIntrs(){ return this->_lastIntrs; }
-void SceneObject::setLastIntrs(unsigned int newID){ this->_lastIntrs = newID; }

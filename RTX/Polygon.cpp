@@ -43,14 +43,14 @@ bool Polygon::intersect(Ray ray, float& ti){
     a = edge1.dot(h);
     if (a > -EPSILON && a < EPSILON)
         return false;    // Ray and triangle are parallel.
-    f = 1.0/a;
+    f = 1.0f/a;
     Vector3 s = (ray.getOrigin()) - vertex0;
     u = f * (s.dot(h));
-    if (u < 0.0 || u > 1.0)
+    if (u < 0.0f || u > 1.0f)
         return false;
     Vector3 q = s.cross(edge1);
     v = f * ray.getDirection().dot(q);
-    if (v < 0.0 || u + v > 1.0)
+    if (v < 0.0f || u + v > 1.0f)
         return false;
     // Compute t, intersection point in the ray line.
     float t = f * edge2.dot(q);
@@ -64,22 +64,12 @@ bool Polygon::intersect(Ray ray, float& ti){
 }
 
 BBox* Polygon::createBBox(){
-    Vector3 min(std::numeric_limits<float>::max(),
-                std::numeric_limits<float>::max(),
-                std::numeric_limits<float>::max());
-    Vector3 max(std::numeric_limits<float>::min(),
-                std::numeric_limits<float>::min(),
-                std::numeric_limits<float>::min());
-    for(Vector3* vert: this->_verts){
-        if(vert->getX() < min.getX()) min.setX(vert->getX());
-        if(vert->getY() < min.getY()) min.setY(vert->getY());
-        if(vert->getZ() < min.getZ()) min.setZ(vert->getZ());
-        if(vert->getX() > max.getX()) max.setX(vert->getX());
-        if(vert->getY() > max.getY()) max.setY(vert->getY());
-        if(vert->getZ() > max.getZ()) max.setZ(vert->getZ());
-    }
-    return new BBox(min.getX(), max.getX(), min.getY(),
-                max.getY(), min.getZ(), max.getZ());
+    return new BBox(std::min(this->_verts[0]->getX(), std::min(this->_verts[1]->getX(), this->_verts[2]->getX())) - EPSILON,
+                    std::max(this->_verts[0]->getX(), std::max(this->_verts[1]->getX(), this->_verts[2]->getX())) + EPSILON,
+                    std::min(this->_verts[0]->getY(), std::min(this->_verts[1]->getY(), this->_verts[2]->getY())) - EPSILON,
+                    std::max(this->_verts[0]->getY(), std::max(this->_verts[1]->getY(), this->_verts[2]->getY())) + EPSILON,
+                    std::min(this->_verts[0]->getZ(), std::min(this->_verts[1]->getZ(), this->_verts[2]->getZ())) - EPSILON,
+                    std::max(this->_verts[0]->getZ(), std::max(this->_verts[1]->getZ(), this->_verts[2]->getZ())) + EPSILON);
 }
 
 void Polygon::printTotalIntersections(){std::cout << "Ray-Triangle Tests:\t\t" << rayTriTests << std::endl
