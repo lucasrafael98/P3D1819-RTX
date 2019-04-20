@@ -171,32 +171,33 @@ SceneObject* Grid::traverseGrid(Ray ray, Vector3 i, Vector3 tnext,
                     (this->_cellnum->getX() * this->_cellnum->getY() * i.getZ());
         std::vector<SceneObject*> objects = this->_cells.at(index)->getObjects();
         float tnear = INFINITY;
-        for(unsigned int i = 0; i < objects.size(); i++){
-        if(ray.getID() != objects.at(i)->getLastID()){
-                objects.at(i)->setLastID(ray.getID());
-                if(objects.at(i)->intersect(ray, t0)){
-                    if(t0 < tnear){
-                        objects.at(i)->setLastID(ray.getID() - 1);
-                        tnear = t0;
-                        hit = objects.at(i);
-                    }
+        for(SceneObject* so: objects){
+            if(so->getLastID() == ray.getID()) continue;
+            if(so->intersect(ray, t0)){
+                if(t0 < tnear){
+                    tnear = t0;
+                    hit = so;
                 }
             }
+            so->setLastID(ray.getID());
         }
         if(tnext.getX() < tnext.getY() && tnext.getX() < tnext.getZ()){
             if(hit && tnear < tnext.getX()) return hit;
+            else if(hit) hit->setLastID(0);
             tnext.setX(tnext.getX() + dt.getX());
             i.setX(i.getX() + step.getX());
             if(i.getX() == stop.getX()) return nullptr;
         }
         else if(tnext.getY() < tnext.getZ()){
             if(hit && tnear < tnext.getY()) return hit;
+            else if(hit) hit->setLastID(0);
             tnext.setY(tnext.getY() + dt.getY());
             i.setY(i.getY() + step.getY());
             if(i.getY() == stop.getY()) return nullptr;
         }
         else{
             if(hit && tnear < tnext.getZ()) return hit;
+            else if(hit) hit->setLastID(0);
             tnext.setZ(tnext.getZ() + dt.getZ());
             i.setZ(i.getZ() + step.getZ());
             if(i.getZ() == stop.getZ()) return nullptr;
