@@ -315,9 +315,9 @@ Color rayTracing( Ray ray, int depth, float RefrIndex, const std::vector<Light*>
 						int sampleDotR = raySample.dot(R);
 
 						//w = Cor * (Sample DOT OriginalRay)^Specular
-						totalW = totalW + Color((float)pow(reflectionColor.getR() * (sampleDotR), hit->getMaterial()->getSpecular() * 100),
-							(float)pow(reflectionColor.getG() * (sampleDotR), hit->getMaterial()->getSpecular() * 100),
-							(float)pow(reflectionColor.getB() * (sampleDotR), hit->getMaterial()->getSpecular() * 100));
+						totalW = totalW + Color((float)pow(reflectionColor.getR() * (sampleDotR), hit->getMaterial()->getSpecular()),
+							(float)pow(reflectionColor.getG() * (sampleDotR), hit->getMaterial()->getSpecular()),
+							(float)pow(reflectionColor.getB() * (sampleDotR), hit->getMaterial()->getSpecular()));
 					}
 					
 				}
@@ -342,9 +342,9 @@ Color rayTracing( Ray ray, int depth, float RefrIndex, const std::vector<Light*>
 			}
 			else if (REFLECTION_MODE == 2) {
 				//w = Cor * (Sample DOT OriginalRay)^Specular, dot is always 1 here (same ray)
-				totalW = totalW + Color((float)pow(reflectionColor.getR(), hit->getMaterial()->getSpecular() * 100),
-						(float)pow(reflectionColor.getG(), hit->getMaterial()->getSpecular() * 100),
-						(float)pow(reflectionColor.getB(), hit->getMaterial()->getSpecular() * 100));
+				totalW = totalW + Color((float)pow(reflectionColor.getR(), hit->getMaterial()->getSpecular()),
+						(float)pow(reflectionColor.getG(), hit->getMaterial()->getSpecular()),
+						(float)pow(reflectionColor.getB(), hit->getMaterial()->getSpecular()));
 				avgResult = Color(totalW.getR() / totalL[0], totalW.getG() / totalL[1], totalW.getB() / totalL[2]);
 			}
 			
