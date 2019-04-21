@@ -53,8 +53,8 @@ BBox* Sphere::createBBox(){
         max.setZ(min.getZ());
         min.setZ(temp);
     }
-    return new BBox(min.getX(), max.getX(), min.getY(),
-                max.getY(), min.getZ(), max.getZ());
+    return new BBox(min.getX() - EPSILON, max.getX() + EPSILON, min.getY() - EPSILON,
+                max.getY() + EPSILON, min.getZ() - EPSILON, max.getZ() + EPSILON);
 }
 
 void Sphere::printTotalIntersections(){std::cout << "Ray-Sphere Tests:\t\t" << raySphTests << std::endl

@@ -149,16 +149,16 @@ void Scene::loadNFF(std::string filename){
 			std::cout << raw_verts.size() << raw_normals.size() << std::endl;
 			std::vector<std::vector<Vector3*>> verts;
 			std::vector<Vector3*> normals;
-			for (int i = 0; i != face_indices.size(); i+=3) {
+			for (unsigned int i = 0; i != face_indices.size(); i+=3) {
 				std::vector<Vector3*> temp;
 				temp.push_back(raw_verts.at(face_indices.at(i)));
 				temp.push_back(raw_verts.at(face_indices.at(i+1)));
 				temp.push_back(raw_verts.at(face_indices.at(i+2)));
 				verts.push_back(temp);
-				normals.push_back(raw_normals.at(face_indices.at(i)));
+				normals.push_back(raw_normals.at(face_indices.at(i+2)));
 			}
 			std::cout << "OI: " << verts.size() << std::endl;
-			for (int i = 0; i != verts.size(); i++) {
+			for (unsigned int i = 0; i != verts.size(); i++) {
 				this->_objects.push_back(
 					new Polygon(material[0], material[1], material[2],
 						material[3], material[4], material[5],

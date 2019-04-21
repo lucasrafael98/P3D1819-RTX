@@ -29,19 +29,21 @@
 #define GRID_ON false
 #define DOF_ON false
 // 0/1/2: off/jitter/montecarlo
-#define AA_MODE 0
+#define AA_MODE 2
 // 0/1/2: off/random/area/area2
 #define SOFT_SHADOWS 0
 
+#define MAX_MONTECARLO 5
+#define MONTECARLO_THRESHOLD 20
 #define MAX_DEPTH 6
 #define SAMPLES 2
-#define AREA_LIGHT 0.1
-#define DOF_SAMPLES 5
+#define AREA_LIGHT 0.25
+#define DOF_SAMPLES 32
 #define FOCAL_DISTANCE 1.5f
-#define APERTURE 20.0f
+#define APERTURE 100.0f
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
-#define NFF "NFF/mirrors.nff"
+#define NFF "NFF/balls_low.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
@@ -75,7 +77,7 @@ Ray computePrimaryRay(float x, float y){
 	Vector3 rayDirection;
 	if (DOF_ON) {
 		Vector3 L;
-		bool notInLens = false;
+		//bool notInLens = false;
 
 		float rnd_val = (float)rand() / (float)RAND_MAX;
 		float angle = rnd_val * 2 * M_PI;
@@ -90,8 +92,8 @@ Ray computePrimaryRay(float x, float y){
 		Vector3 newOrigin = *(scene->getCamera()->getU())*L.getX() + *(scene->getCamera()->getV()) * L.getY() + *(scene->getCamera()->getEye());
 
 		//View plane point
-		Vector3 viewPoint = Vector3(scene->getCamera()->getW() * (((x + 0.5f) / scene->getCamera()->getResX()) - 0.5f),
-			scene->getCamera()->getH() * (((y + 0.5f) / scene->getCamera()->getResY()) - 0.5f),
+		Vector3 viewPoint = Vector3(scene->getCamera()->getW() * (((x + rnd_val) / scene->getCamera()->getResX()) - 0.5f),
+			scene->getCamera()->getH() * (((y + rnd_val) / scene->getCamera()->getResY()) - 0.5f),
 			-scene->getCamera()->getDF());
 
 		//Focal plane point
@@ -100,8 +102,8 @@ Ray computePrimaryRay(float x, float y){
 			-FOCAL_DISTANCE);
 		//New ray direction
 		Vector3 newDirection = Vector3( *(scene->getCamera()->getU())*(focalPoint.getX() - L.getX()) +
-			 *(scene->getCamera()->getV())*(focalPoint.getY() - L.getY()) +
-			 *(scene->getCamera()->getN())*(focalPoint.getZ() - L.getZ()));
+			 *(scene->getCamera()->getV())*(focalPoint.getY() - L.getY()) -
+			 *(scene->getCamera()->getN())*(FOCAL_DISTANCE));
 
 		newDirection.normalize();
 		return Ray(newOrigin.getX(), newOrigin.getY(), newOrigin.getZ(), newDirection.getX(), newDirection.getY(), newDirection.getZ());
@@ -149,14 +151,9 @@ static float getShadow(const Vector3 *point, const Light *light, const std::vect
 
 static float getShadowFactor(const Vector3 *point, const Light *light, const std::vector<SceneObject*> &objects) {
 	if(SOFT_SHADOWS == 3){
-		//std::vector<Vector3> r;
 		std::vector<Vector3> s;
 		for (int p = 0; p < SAMPLES; p++) {
 			for (int q = 0; q < SAMPLES; q++) {
-				/*float randomFactor = ((float)rand() / (RAND_MAX)); //0 < random < 1
-				r.push_back(Vector3(point->getX() + ((p + randomFactor)/SAMPLES*AREA_LIGHT),
-										point->getY() + ((q + randomFactor)/SAMPLES*AREA_LIGHT),
-										point->getZ()));*/
 				float randomFactor = ((float)rand() / (RAND_MAX)); //0 < random < 1
 				s.push_back(Vector3(light->getPosition()->getX() + ((p + randomFactor) * AREA_LIGHT),
 										light->getPosition()->getY() + ((q + randomFactor) * AREA_LIGHT),
@@ -171,7 +168,6 @@ static float getShadowFactor(const Vector3 *point, const Light *light, const std
 		}
 		float shadowFactor = 0.0f;
 		for(unsigned int i = 0; i != s.size(); i++){
-			//point = r.at(i);
 			Light sl = Light(s.at(i).getX(), s.at(i).getY(), s.at(i).getZ(),
 							light->getColor()->getR(), light->getColor()->getG(), light->getColor()->getB());
 			shadowFactor += getShadow(point, &sl, objects);
@@ -311,40 +307,109 @@ Color rayTracing( Ray ray, int depth, float RefrIndex, const std::vector<Light*>
 	return rayColor;
 }
 
-Color jittering(int x, int y) {
+Color getColorAux(float x, float y, int index, Color color) {
 	Ray ray;
+	std::vector<Light*> lights;
+	if (SOFT_SHADOWS == 2) {
+		for (Light* l : scene->getLights()) {
+			Vector3* altpos = l->getAlternatePos(index);
+			lights.push_back(new Light(altpos->getX(), altpos->getY(), altpos->getZ(),
+				l->getColor()->getR(), l->getColor()->getG(), l->getColor()->getB()));
+		}
+	}
+	else lights = scene->getLights();
+	if (DOF_ON) {
+		Color aux;
+		for (int j = 0; j < DOF_SAMPLES; j++) {
+			Ray DOFray = computePrimaryRay(x, y);
+			aux = aux + rayTracing(DOFray, 1, 1.0, lights);
+		}
+		aux = aux / DOF_SAMPLES;
+		color = color + aux;
+	}
+	else {
+		ray = computePrimaryRay(x, y);
+		color = color + rayTracing(ray, 1, 1.0, lights);
+	}
+	if (SOFT_SHADOWS == 2) for (Light* al : lights) delete al;
+	return color;
+}
+
+Color jittering(int x, int y) {
 	Color color = Color(0.0, 0.0, 0.0);
 	int i = 0;
 	for (int p = 0; p < SAMPLES; p++) {
 		for (int q = 0; q < SAMPLES; q++) {
-			std::vector<Light*> lights;
-			if(SOFT_SHADOWS == 2){
-				for(Light* l: scene->getLights()){
-					Vector3* altpos = l->getAlternatePos(i);
-					lights.push_back(new Light(altpos->getX(), altpos->getY(), altpos->getZ(),
-												l->getColor()->getR(), l->getColor()->getG(), l->getColor()->getB()));
-				}
-			}
-			else lights = scene->getLights();
 			float randomFactor = ((float)rand() / (RAND_MAX)); //0 < random < 1
-			if (DOF_ON) {
-				Color aux;
-				for (int j = 0; j < DOF_SAMPLES; j++) {
-					Ray DOFray = computePrimaryRay(x + ((p + randomFactor) / SAMPLES), y + ((q + randomFactor) / SAMPLES));
-					aux = aux + rayTracing(DOFray, 1, 1.0, lights);
-				}
-				aux = aux / DOF_SAMPLES;
-				color = color + aux;
-			}
-			else {
-				ray = computePrimaryRay(x + ((p + randomFactor) / SAMPLES), y + ((q + randomFactor) / SAMPLES));
-				color = color + rayTracing(ray, 1, 1.0, lights);
-			}
-			if(SOFT_SHADOWS == 2) for(Light* al: lights) delete al;
+			color = getColorAux(x + ((p + randomFactor) / SAMPLES), y + ((q + randomFactor) / SAMPLES), i, color);
 			i++;
 		}
 	}
 	return Color(color.getR() / i, color.getG() / i, color.getB() / i);
+}
+
+Color monte_carlo(int x, int y, int division) {
+	Color color[4] = { Color(0.0, 0.0, 0.0), Color(0.0, 0.0, 0.0), Color(0.0, 0.0, 0.0), Color(0.0, 0.0, 0.0) };
+	float x_center = x + 0.5f / division, y_center = y + 0.5f / division;
+	float x_right = x + 1.0f / division;
+	float y_top = y + 1.0f / division;
+
+	std::pair<float, float> bottom_left = std::make_pair(x, y);
+	std::pair<float, float> bottom_right = std::make_pair(x_right, y);
+	std::pair<float, float> top_left = std::make_pair(x, y_top);
+	std::pair<float, float> top_right = std::make_pair(x_right, y_top);
+
+	std::pair<float, float> corners[4] = { bottom_left, bottom_right, top_left, top_right };
+
+	for (int i = 0; i < 4; i++)
+		color[i] = getColorAux(corners[i].first, corners[i].second, i, color[i]);
+
+	if (division <= MAX_MONTECARLO) {
+		Vector3 colorV3[4] = { Vector3(color[0].getR(), color[0].getB(), color[0].getB()),
+							Vector3(color[1].getR(), color[1].getB(), color[1].getB()),
+							Vector3(color[2].getR(), color[2].getB(), color[2].getB()),
+							Vector3(color[3].getR(), color[3].getB(), color[3].getB()) };
+
+		float colorV3Length[4] = { colorV3[0].length2(), colorV3[1].length2(), colorV3[2].length2(), colorV3[3].length2() };
+
+		bool flag = false;
+		for (int i = 0; i < 4 && !flag; i++)
+			for (int j = 0; j < 4; j++)
+				if (abs(colorV3Length[i] - colorV3Length[j]) > MONTECARLO_THRESHOLD) {
+					flag = true;
+					break;
+				}
+
+		if (flag) {
+			Color recursiveColor[5] = { Color(0.0,0.0,0.0), Color(0.0,0.0,0.0), Color(0.0,0.0,0.0),Color(0.0,0.0,0.0), Color(0.0,0.0,0.0) };
+
+			for(int i = 0; i < 4; i++)
+				recursiveColor[i] = monte_carlo(corners[i].first, corners[i].second, division + 1);
+			recursiveColor[4] = monte_carlo(x_center, y_center, division + 1);
+
+			Color color_avg = Color(0.0, 0.0, 0.0);
+			for (int i = 0; i < 5; i++)
+				color_avg = color_avg + (recursiveColor[i] / 5);
+
+			return color_avg;
+
+		}
+		else {
+			Color color_avg = Color(0.0, 0.0, 0.0);
+			for (int i = 0; i < 4; i++)
+				color_avg = color_avg + (color[i] / 4);
+
+			return color_avg;
+		}
+	}
+	else {
+		Color color_avg = Color(0.0, 0.0, 0.0);
+		for (int i = 0; i < 4; i++)
+			color_avg = color_avg + (color[i] / 4);
+
+		return color_avg;
+	}
+
 }
 
 /////////////////////////////////////////////////////////////////////// ERRORS
@@ -511,8 +576,10 @@ void renderScene()
 	{
 		for (int x = 0; x < RES_X; x++)
 		{
-			if(AA_MODE == 1)
+			if (AA_MODE == 1)
 				color = jittering(x, y);
+			else if (AA_MODE == 2)
+				color = monte_carlo(x, y, 1);
 			else{
 				if (DOF_ON) {
 					for (int i = 0; i < DOF_SAMPLES; ++i) {
@@ -550,6 +617,7 @@ void renderScene()
 		 drawPoints();
 
 	Sphere::printTotalIntersections();
+	Polygon::printTotalIntersections();
 	printf("All done!\n"); 
 	draw = false;
 }

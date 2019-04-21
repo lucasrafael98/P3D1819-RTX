@@ -27,8 +27,8 @@ void Light::computeAreaLight(int samples, float area){
     for (int p = 0; p < samples; p++) {
         for (int q = 0; q < samples; q++) {
             float randomFactor = ((float)rand() / (RAND_MAX)); //0 < random < 1
-            this->_altpos.push_back(new Vector3(this->_pos->getX() + ((p + randomFactor) * area),
-                                    this->_pos->getY() + ((q + randomFactor) * area),
+            this->_altpos.push_back(new Vector3(this->_pos->getX() + ((p + randomFactor) / samples * area),
+                                    this->_pos->getY() + ((q + randomFactor) / samples * area),
                                     this->_pos->getZ()));
         }
     }
