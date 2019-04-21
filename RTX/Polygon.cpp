@@ -43,14 +43,14 @@ bool Polygon::intersect(Ray ray, float& ti){
     a = edge1.dot(h);
     if (a > -EPSILON && a < EPSILON)
         return false;    // Ray and triangle are parallel.
-    f = 1.0f/a;
+    f = 1.0/a;
     Vector3 s = (ray.getOrigin()) - vertex0;
     u = f * (s.dot(h));
-    if (u < 0.0f || u > 1.0f)
+    if (u < 0.0 || u > 1.0)
         return false;
     Vector3 q = s.cross(edge1);
     v = f * ray.getDirection().dot(q);
-    if (v < 0.0f || u + v > 1.0f)
+    if (v < 0.0 || u + v > 1.0)
         return false;
     // Compute t, intersection point in the ray line.
     float t = f * edge2.dot(q);

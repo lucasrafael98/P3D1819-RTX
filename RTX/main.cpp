@@ -50,7 +50,7 @@
 #define REFLECTION_SAMPLES 2
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
-#define NFF "NFF/balls_low.nff"
+#define NFF "NFF/mount_high.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
@@ -141,7 +141,7 @@ static float getShadow(const Vector3 *point, const Light *light, const std::vect
 				shadowRayDirection.getX(), shadowRayDirection.getY(), shadowRayDirection.getZ());
 	if(GRID_ON){
 		float ti = INFINITY;
-		if(scene->getGrid()->intersect(shadowRay, ti))
+		if(scene->getGrid()->intersect(shadowRay, ti, draw_mode != 2))
 			return 1.0f;
 	}
 	else{
@@ -236,7 +236,7 @@ Color rayTracing( Ray ray, int depth, float RefrIndex, const std::vector<Light*>
 	SceneObject* hit = nullptr;
 	float tnear = INFINITY;
 	if(GRID_ON){
-		hit = scene->getGrid()->intersect(ray, tnear);
+		hit = scene->getGrid()->intersect(ray, tnear, draw_mode != 2);
 		// tNear gets updated with the grid's BB even if no objects are hit. We don't want that. 
 		if(!hit) tnear = INFINITY;
 	}
