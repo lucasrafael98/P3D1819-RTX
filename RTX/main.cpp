@@ -50,7 +50,7 @@
 #define REFLECTION_SAMPLES 2
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
-#define NFF "NFF/mount_high.nff"
+#define NFF "NFF/balls_low.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
@@ -315,9 +315,9 @@ Color rayTracing( Ray ray, int depth, float RefrIndex, const std::vector<Light*>
 						int sampleDotR = raySample.dot(R);
 
 						//w = Cor * (Sample DOT OriginalRay)^Specular
-						totalW = totalW + Color((float)pow(reflectionColor.getR() * (sampleDotR), hit->getMaterial()->getSpecular()),
-							(float)pow(reflectionColor.getG() * (sampleDotR), hit->getMaterial()->getSpecular()),
-							(float)pow(reflectionColor.getB() * (sampleDotR), hit->getMaterial()->getSpecular()));
+						totalW = totalW + Color((float)pow(reflectionColor.getR() * (sampleDotR), hit->getMaterial()->getSpecular() * 100),
+							(float)pow(reflectionColor.getG() * (sampleDotR), hit->getMaterial()->getSpecular() * 100),
+							(float)pow(reflectionColor.getB() * (sampleDotR), hit->getMaterial()->getSpecular() * 100));
 					}
 					
 				}
@@ -342,14 +342,14 @@ Color rayTracing( Ray ray, int depth, float RefrIndex, const std::vector<Light*>
 			}
 			else if (REFLECTION_MODE == 2) {
 				//w = Cor * (Sample DOT OriginalRay)^Specular, dot is always 1 here (same ray)
-				totalW = totalW + Color((float)pow(reflectionColor.getR(), hit->getMaterial()->getSpecular()),
-						(float)pow(reflectionColor.getG(), hit->getMaterial()->getSpecular()),
-						(float)pow(reflectionColor.getB(), hit->getMaterial()->getSpecular()));
+				totalW = totalW + Color((float)pow(reflectionColor.getR(), hit->getMaterial()->getSpecular() * 100),
+						(float)pow(reflectionColor.getG(), hit->getMaterial()->getSpecular() * 100),
+						(float)pow(reflectionColor.getB(), hit->getMaterial()->getSpecular() * 100));
 				avgResult = Color(totalW.getR() / totalL[0], totalW.getG() / totalL[1], totalW.getB() / totalL[2]);
 			}
 			
 
-			rayColor = rayColor + avgResult;
+			rayColor = rayColor + avgResult * hit->getMaterial()->getSpecular();
 		} else
 			rayColor = rayColor + reflectionColor * hit->getMaterial()->getSpecular();
 	}
