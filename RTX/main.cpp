@@ -30,7 +30,7 @@
 #define VERTEX_COORD_ATTRIB 0
 #define COLOR_ATTRIB 1
 
-#define GRID_ON true
+#define GRID_ON false
 #define DOF_ON false
 // 0/1/2: off/jitter/montecarlo
 #define AA_MODE 2
