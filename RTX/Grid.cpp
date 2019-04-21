@@ -1,4 +1,7 @@
 #include "Grid.h"
+#include <mutex>
+
+std::mutex mtx_rays;
 
 int clamp(int n, int lower, int upper) {
 	return std::max(lower, std::min(n, upper));
@@ -87,7 +90,7 @@ Grid::~Grid(){
     }
 }
 
-SceneObject* Grid::intersect(Ray ray, float &t0){
+SceneObject* Grid::intersect(Ray ray, float &t0, bool mailbox){
     // If the ray doesn't even hit the grid BB, cease computation
     Vector3 tmin, tmax;
     if(!this->_bbox->intersect(ray, t0, tmin, tmax)) return nullptr;
@@ -140,7 +143,7 @@ SceneObject* Grid::intersect(Ray ray, float &t0){
             stop(stopx, stopy, stopz),
             i(ix, iy, iz);
 
-    return traverseGrid(ray, i, tnext, step, stop, dt, t0);
+    return traverseGrid(ray, i, tnext, step, stop, dt, t0, mailbox);
 }
 
 void Grid::computeTnext(float dt, float &tnext, int &step, float n,
@@ -163,7 +166,7 @@ void Grid::computeTnext(float dt, float &tnext, int &step, float n,
 }
 
 SceneObject* Grid::traverseGrid(Ray ray, Vector3 i, Vector3 tnext, 
-                                Vector3 step, Vector3 stop, Vector3 dt, float &t0){
+                                Vector3 step, Vector3 stop, Vector3 dt, float &t0, bool mailbox){
     while(true){
         SceneObject* hit = nullptr;
         int index = i.getX() + 
@@ -172,32 +175,32 @@ SceneObject* Grid::traverseGrid(Ray ray, Vector3 i, Vector3 tnext,
         std::vector<SceneObject*> objects = this->_cells.at(index)->getObjects();
         float tnear = INFINITY;
         for(SceneObject* so: objects){
-            if(so->getLastID() == ray.getID()) continue;
+            if(mailbox && so->getLastID() == ray.getID()) continue;
             if(so->intersect(ray, t0)){
                 if(t0 < tnear){
                     tnear = t0;
                     hit = so;
                 }
             }
-            so->setLastID(ray.getID());
+            if(mailbox) so->setLastID(ray.getID());
         }
         if(tnext.getX() < tnext.getY() && tnext.getX() < tnext.getZ()){
             if(hit && tnear < tnext.getX()) return hit;
-            else if(hit) hit->setLastID(0);
+            else if(mailbox && hit) hit->setLastID(0);
             tnext.setX(tnext.getX() + dt.getX());
             i.setX(i.getX() + step.getX());
             if(i.getX() == stop.getX()) return nullptr;
         }
         else if(tnext.getY() < tnext.getZ()){
             if(hit && tnear < tnext.getY()) return hit;
-            else if(hit) hit->setLastID(0);
+            else if(mailbox && hit) hit->setLastID(0);
             tnext.setY(tnext.getY() + dt.getY());
             i.setY(i.getY() + step.getY());
             if(i.getY() == stop.getY()) return nullptr;
         }
         else{
             if(hit && tnear < tnext.getZ()) return hit;
-            else if(hit) hit->setLastID(0);
+            else if(mailbox && hit) hit->setLastID(0);
             tnext.setZ(tnext.getZ() + dt.getZ());
             i.setZ(i.getZ() + step.getZ());
             if(i.getZ() == stop.getZ()) return nullptr;
