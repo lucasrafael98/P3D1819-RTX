@@ -26,7 +26,7 @@
 #define VERTEX_COORD_ATTRIB 0
 #define COLOR_ATTRIB 1
 
-#define GRID_ON true
+#define GRID_ON false
 #define DOF_ON false
 // 0/1/2: off/jitter/montecarlo
 #define AA_MODE 0
@@ -41,7 +41,7 @@
 #define APERTURE 20.0f
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
-#define NFF "NFF/goodScene.nff"
+#define NFF "NFF/mirrors.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
