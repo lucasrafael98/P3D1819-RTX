@@ -30,14 +30,14 @@
 #define VERTEX_COORD_ATTRIB 0
 #define COLOR_ATTRIB 1
 
-#define GRID_ON false
+#define GRID_ON true
 #define DOF_ON false
 // 0/1/2: off/jitter/montecarlo
-#define AA_MODE 2
+#define AA_MODE 0
 // 0/1/2: off/random/area/area2
 #define SOFT_SHADOWS 0
 // 0/1/2: off/no_pow/pow
-#define REFLECTION_MODE 0
+#define REFLECTION_MODE 2
 
 #define MAX_MONTECARLO 5
 #define MONTECARLO_THRESHOLD 20
@@ -292,6 +292,7 @@ Color rayTracing( Ray ray, int depth, float RefrIndex, const std::vector<Light*>
 		R.normalize();
 
 		Color totalW = Color(0.0, 0.0, 0.0);
+		float totalL[3] = { 0.0f, 0.0f, 0.0f };
 		if (REFLECTION_MODE == 1 || REFLECTION_MODE == 2) {
 			//GLOSSY REFLECTIONS
 			for (int p = 0; p < REFLECTION_SAMPLES; p++) {
@@ -303,6 +304,10 @@ Color rayTracing( Ray ray, int depth, float RefrIndex, const std::vector<Light*>
 
 					Ray rSample(hitPoint + N * 0.0001f, raySample);
 					Color reflectionColor = rayTracing(rSample, depth + 1, RefrIndex, lights);
+
+					totalL[0] += reflectionColor.getR();
+					totalL[1] += reflectionColor.getG();
+					totalL[2] += reflectionColor.getB();
 
 					if(REFLECTION_MODE == 1)
 						totalW = totalW + reflectionColor;
@@ -327,18 +332,24 @@ Color rayTracing( Ray ray, int depth, float RefrIndex, const std::vector<Light*>
 		//Glossy
 
 		if (REFLECTION_MODE == 1 || REFLECTION_MODE == 2) {
-			if(REFLECTION_MODE == 1)
+			totalL[0] += reflectionColor.getR();
+			totalL[1] += reflectionColor.getG();
+			totalL[2] += reflectionColor.getB();
+			Color avgResult;
+			if (REFLECTION_MODE == 1) {
 				totalW = totalW + reflectionColor;
+				avgResult = totalW / (REFLECTION_SAMPLES * REFLECTION_SAMPLES + 1);
+			}
 			else if (REFLECTION_MODE == 2) {
 				//w = Cor * (Sample DOT OriginalRay)^Specular, dot is always 1 here (same ray)
 				totalW = totalW + Color((float)pow(reflectionColor.getR(), hit->getMaterial()->getSpecular()),
 						(float)pow(reflectionColor.getG(), hit->getMaterial()->getSpecular()),
 						(float)pow(reflectionColor.getB(), hit->getMaterial()->getSpecular()));
+				avgResult = Color(totalW.getR() / totalL[0], totalW.getG() / totalL[1], totalW.getB() / totalL[2]);
 			}
 			
-			Color avgResult = totalW / (REFLECTION_SAMPLES * REFLECTION_SAMPLES + 1);
 
-			rayColor = rayColor + avgResult * hit->getMaterial()->getSpecular();
+			rayColor = rayColor + avgResult;
 		} else
 			rayColor = rayColor + reflectionColor * hit->getMaterial()->getSpecular();
 	}
