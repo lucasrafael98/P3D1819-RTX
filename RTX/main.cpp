@@ -298,9 +298,9 @@ Color rayTracing( Ray ray, int depth, float RefrIndex, const std::vector<Light*>
 			for (int p = 0; p < REFLECTION_SAMPLES; p++) {
 				for (int q = 0; q < REFLECTION_SAMPLES; q++) {
 					float randomFactor = ((float)rand() / (RAND_MAX)); //0 < random < 1
-					Vector3 raySample = Vector3(R.getX() + ((p + randomFactor) * AREA_LIGHT),
-						R.getY() + ((q + randomFactor) * AREA_LIGHT),
-						R.getZ());
+					Vector3 raySample = Vector3(dir.getX() + ((p + randomFactor) * AREA_LIGHT),
+						dir.getY() + ((q + randomFactor) * AREA_LIGHT),
+						dir.getZ());
 
 					Ray rSample(hitPoint + N * 0.0001f, raySample);
 					Color reflectionColor = rayTracing(rSample, depth + 1, RefrIndex, lights);
@@ -312,7 +312,7 @@ Color rayTracing( Ray ray, int depth, float RefrIndex, const std::vector<Light*>
 					if(REFLECTION_MODE == 1)
 						totalW = totalW + reflectionColor;
 					else if (REFLECTION_MODE == 2) {
-						int sampleDotR = raySample.dot(R);
+						int sampleDotR = raySample.dot(dir);
 
 						//w = Cor * (Sample DOT OriginalRay)^Specular
 						totalW = totalW + Color((float)pow(reflectionColor.getR() * (sampleDotR), hit->getMaterial()->getSpecular()),
