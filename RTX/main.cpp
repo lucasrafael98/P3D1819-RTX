@@ -19,6 +19,7 @@
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include "parallel-util.hpp"
+#include "circular_buffer.hpp"
 
 #include "Scene.h"
 #include "Color.h"
@@ -37,7 +38,7 @@
 // 0/1/2: off/random/area/area2
 #define SOFT_SHADOWS 0
 // 0/1/2: off/no_pow/pow
-#define REFLECTION_MODE 2
+#define REFLECTION_MODE 0
 
 #define MAX_MONTECARLO 5
 #define MONTECARLO_THRESHOLD 20
@@ -58,7 +59,6 @@ float *vertices;
 
 int size_vertices;
 int size_colors;
-
 GLfloat m[16];  //projection matrix initialized by ortho function
 
 GLuint VaoId;
@@ -71,10 +71,7 @@ Scene* scene = NULL;
 int RES_X, RES_Y;
 
 /* Draw Mode: 0 - point by point; 1 - line by line; 2 - full frame */
-std::mutex mtx;           // mutex for critical section
 int draw_mode=2;
-int index_pos_parallel = 0;
-int index_col_parallel = 0;
 
 int WindowHandle = 0;
 
@@ -607,6 +604,26 @@ void destroyBufferObjects()
 	checkOpenGLError("ERROR: Could not destroy VAOs and VBOs.");
 }
 
+void drawLine() {
+	glBindVertexArray(VaoId);
+	glUseProgram(ProgramId);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VboId[0]);
+	glBufferData(GL_ARRAY_BUFFER, 2 * RES_X * sizeof(float), vertices, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, VboId[1]);
+	glBufferData(GL_ARRAY_BUFFER, 3 * RES_X * sizeof(float), colors, GL_DYNAMIC_DRAW);
+
+	glUniformMatrix4fv(UniformId, 1, GL_FALSE, m);
+	glDrawArrays(GL_POINTS, 0, RES_X);
+	glFinish();
+
+	glUseProgram(0);
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	checkOpenGLError("ERROR: Could not draw scene.");
+}
+
 void drawPoints()
 {
 	glBindVertexArray(VaoId);
@@ -630,9 +647,41 @@ void drawPoints()
 
 /////////////////////////////////////////////////////////////////////// CALLBACKS
 
+class buffer_item {
+private:
+	float pos[2];
+	float color[3];
+
+public:
+	buffer_item() {
+		pos[0] = 0.0;
+		pos[1] = 0.0;
+		color[0] = 0.0;
+		color[1] = 0.0;
+		color[2] = 0.0;
+	}
+
+	buffer_item(float x, float y, float r, float g, float b) {
+		pos[0] = x;
+		pos[1] = y;
+		color[0] = r;
+		color[1] = g;
+		color[2] = b;
+	}
+
+	float getX() { return pos[0]; }
+	float getY() { return pos[1]; }
+	float getR() { return color[0]; }
+	float getG() { return color[1]; }
+	float getB() { return color[2]; }
+};
+
+circular_buffer<std::vector<buffer_item>> circle(512); //512 = MAX LINHAS TO SHOW
+
 void parallelRender(int y) {
 	Color color;
-	std::cout << "START LINE >>>>>>>> " << y << std::endl;
+	//std::cout << "START LINE >>>>>>>> " << y << std::endl;
+	std::vector<buffer_item> buffer_item_vector;
 	for (int x = 0; x < RES_X; x++)
 	{
 		if (AA_MODE == 1)
@@ -652,15 +701,10 @@ void parallelRender(int y) {
 				color = rayTracing(ray, 1, 1.0, scene->getLights());
 			}
 		}
-		mtx.lock();
-		vertices[index_pos_parallel++] = (float)x;
-		vertices[index_pos_parallel++] = (float)y;
-		colors[index_col_parallel++] = (float)color.getR();
-		colors[index_col_parallel++] = (float)color.getG();
-		colors[index_col_parallel++] = (float)color.getB();
-		mtx.unlock();
+		buffer_item_vector.push_back(buffer_item(x, y, color.getR(), color.getG(), color.getB()));
 	}
-	std::cout << "FINISH LINE >>>>>>>> " << y << std::endl;
+	circle.put(buffer_item_vector);
+	//std::cout << "FINISH LINE >>>>>>>> " << y << std::endl;
 }
 
 // Render function by primary ray casting from the eye towards the scene's objects
@@ -669,9 +713,38 @@ void renderScene()
 {
 	if(!draw) return;
 
-	if (draw_mode == 2) {
-		parallelutil::parallel_for(RES_Y, parallelRender);
-		drawPoints();
+	if (draw_mode == 2) { //PARALLEL
+		std::thread calculatePoints([]() {
+			parallelutil::parallel_for(RES_Y, parallelRender);
+		});
+
+		int i = 0;
+
+		while (true) {
+			if (i < RES_Y) {
+				if (!circle.empty()) {
+					std::vector<buffer_item> LineToRender = circle.get();
+					int index_pos = 0;
+					int index_col = 0;
+					for (buffer_item pointToRender : LineToRender) {
+						vertices[index_pos++] = pointToRender.getX();
+						vertices[index_pos++] = pointToRender.getY();
+						colors[index_col++] = pointToRender.getR();
+						colors[index_col++] = pointToRender.getG();
+						colors[index_col++] = pointToRender.getB();
+					}
+					drawLine();
+					index_pos = 0;
+					index_col = 0;
+					i++;
+				}
+			}
+			else {
+				break;
+			}
+		}
+
+		calculatePoints.join();
 	}
 	else {
 		int index_pos = 0;
