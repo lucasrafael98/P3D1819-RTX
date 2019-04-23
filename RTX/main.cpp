@@ -694,7 +694,7 @@ void parallelRender(int y) {
 					Ray DOFray = computePrimaryRay(x, y);
 					color = color + rayTracing(DOFray, 1, 1.0, scene->getLights());
 				}
-				color = color / DOF_SAMPLES;
+				color = color / (DOF_SAMPLES + 1);
 			}
 			else {
 				Ray ray = computePrimaryRay(x, y);
