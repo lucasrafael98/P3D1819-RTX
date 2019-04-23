@@ -131,11 +131,11 @@ SceneObject* Grid::intersect(Ray ray, float &t0, bool mailbox){
     float tnextx, tnexty, tnextz; 
     int stepx, stepy, stepz,
         stopx, stopy, stopz;
-    computeTnext(dt.getX(), tnextx, stepx, this->_cellnum->getX(),
+    computeTrajectory(dt.getX(), tnextx, stepx, this->_cellnum->getX(),
                     stopx, ray.getDirection().getX(), ix, tmin.getX());
-    computeTnext(dt.getY(), tnexty, stepy, this->_cellnum->getY(),
+    computeTrajectory(dt.getY(), tnexty, stepy, this->_cellnum->getY(),
                     stopy, ray.getDirection().getY(), iy, tmin.getY());
-    computeTnext(dt.getZ(), tnextz, stepz, this->_cellnum->getZ(),
+    computeTrajectory(dt.getZ(), tnextz, stepz, this->_cellnum->getZ(),
                     stopz, ray.getDirection().getZ(), iz, tmin.getZ());
     
     Vector3 tnext(tnextx, tnexty, tnextz),
@@ -146,7 +146,7 @@ SceneObject* Grid::intersect(Ray ray, float &t0, bool mailbox){
     return traverseGrid(ray, i, tnext, step, stop, dt, t0, mailbox);
 }
 
-void Grid::computeTnext(float dt, float &tnext, int &step, float n,
+void Grid::computeTrajectory(float dt, float &tnext, int &step, float n,
                         int &stop, float dir, float i, float tmin){
     if(dir > 0){
         tnext = tmin + (i + 1) * dt;

@@ -36,7 +36,10 @@
 #define DOF_ON false
 // 0/1/2: off/jitter/montecarlo
 #define AA_MODE 0
-// 0/1/2: off/random/area/area2
+// area 2: very heavy, alternate version
+// area 3: very light, alternate version
+// area is the correct definitive version
+// 0/1/2: off/random/area/area2/area3
 #define SOFT_SHADOWS 0
 // 0/1/2: off/no_pow/pow
 #define REFLECTION_MODE 0
@@ -44,12 +47,14 @@
 #define MAX_MONTECARLO 5
 #define MONTECARLO_THRESHOLD 20
 #define MAX_DEPTH 6
-#define SAMPLES 2
+#define SAMPLES 4
 #define AREA_LIGHT 0.25
-#define DOF_SAMPLES 32
+#define DOF_SAMPLES 16
 #define FOCAL_DISTANCE 1.5f
-#define APERTURE 100.0f
+#define APERTURE 20.0f
 #define REFLECTION_SAMPLES 2
+
+#define CIRCLE_BUFFER_LINES 512
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
 #define NFF "NFF/balls_low.nff"
@@ -375,8 +380,9 @@ Color rayTracing( Ray ray, int depth, float RefrIndex, const std::vector<Light*>
 Color getColorAux(float x, float y, int index, Color color) {
 	Ray ray;
 	std::vector<Light*> lights;
-	if (SOFT_SHADOWS == 2) {
+	if (SOFT_SHADOWS == 2 || SOFT_SHADOWS == 4) {
 		for (Light* l : scene->getLights()) {
+			if(SOFT_SHADOWS == 2) l->reComputeAltPos(SAMPLES, AREA_LIGHT);
 			Vector3* altpos = l->getAlternatePos(index);
 			lights.push_back(new Light(altpos->getX(), altpos->getY(), altpos->getZ(),
 				l->getColor()->getR(), l->getColor()->getG(), l->getColor()->getB()));
@@ -396,7 +402,7 @@ Color getColorAux(float x, float y, int index, Color color) {
 		ray = computePrimaryRay(x, y);
 		color = color + rayTracing(ray, 1, 1.0, lights);
 	}
-	if (SOFT_SHADOWS == 2) for (Light* al : lights) delete al;
+	if (SOFT_SHADOWS == 2 || SOFT_SHADOWS == 4) for (Light* al : lights) delete al;
 	return color;
 }
 
@@ -747,6 +753,7 @@ void renderScene()
 			line_started[k] = false;
 
 		std::thread calculatePoints([]() {
+			//faster: parallelutil::queue_based_parallel_for(RES_Y, parallelRender);
 			parallelutil::parallel_for(RES_Y, parallelRender);
 		});
 
@@ -940,10 +947,9 @@ int main(int argc, char* argv[])
 	scene = new Scene(std::string(NFF));
 	RES_X = scene->getCamera()->getResX();
 	RES_Y = scene->getCamera()->getResY();
-	if(SOFT_SHADOWS == 2)
+	if(SOFT_SHADOWS == 2 || SOFT_SHADOWS == 4)
 		for(Light* l: scene->getLights())
 			l->computeAreaLight(SAMPLES, AREA_LIGHT);
-
 	if(draw_mode == 0) { // desenhar o conteudo da janela ponto a ponto
 		size_vertices = 2*sizeof(float);
 		size_colors = 3*sizeof(float);
