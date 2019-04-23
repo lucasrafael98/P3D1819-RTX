@@ -34,9 +34,9 @@
 #define GRID_ON true
 #define DOF_ON false
 // 0/1/2: off/jitter/montecarlo
-#define AA_MODE 0
+#define AA_MODE 1
 // 0/1/2: off/random/area/area2
-#define SOFT_SHADOWS 0
+#define SOFT_SHADOWS 2
 // 0/1/2: off/no_pow/pow
 #define REFLECTION_MODE 0
 
@@ -51,7 +51,7 @@
 #define REFLECTION_SAMPLES 2
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
-#define NFF "NFF/balls_low.nff"
+#define NFF "NFF/BFboat.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
