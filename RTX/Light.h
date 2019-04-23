@@ -20,6 +20,7 @@ public:
     float attenuate(const float &r) const;
     void computeAreaLight(int samples, float area);
     Vector3* getAlternatePos(int i);
+    void reComputeAltPos(int samples, float area);
 };
 
 #endif
