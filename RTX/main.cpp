@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <omp.h>
 #include <mutex>
+#include <map>
 
 #include <GL/glew.h>
 #include <GL/freeglut.h>
@@ -677,33 +678,58 @@ public:
 };
 
 circular_buffer<std::vector<buffer_item>> circle(512); //512 = MAX LINHAS TO SHOW
+std::map <int, bool> line_started;
+circular_buffer<bool> threads_done(12);
+std::mutex line_mtx;
 
-void parallelRender(int y) {
-	Color color;
-	//std::cout << "START LINE >>>>>>>> " << y << std::endl;
-	std::vector<buffer_item> buffer_item_vector;
-	for (int x = 0; x < RES_X; x++)
-	{
-		if (AA_MODE == 1)
-			color = jittering(x, y);
-		else if (AA_MODE == 2)
-			color = monte_carlo(x, y, 1);
-		else {
-			if (DOF_ON) {
-				for (int i = 0; i < DOF_SAMPLES; ++i) {
-					Ray DOFray = computePrimaryRay(x, y);
-					color = color + rayTracing(DOFray, 1, 1.0, scene->getLights());
-				}
-				color = color / DOF_SAMPLES;
+void parallelRender(int y, bool state, bool check) {
+	if (state == false) { //not done
+		if (check) {
+			line_mtx.lock();
+			if (line_started[y]) {
+				line_mtx.unlock();
+				return;
 			}
 			else {
-				Ray ray = computePrimaryRay(x, y);
-				color = rayTracing(ray, 1, 1.0, scene->getLights());
+				line_started[y] = true;
+				line_mtx.unlock();
 			}
+		}		
+		Color color;
+		//std::cout << "START LINE >>>>>>>> " << y << std::endl;
+		std::vector<buffer_item> buffer_item_vector;
+		for (int x = 0; x < RES_X; x++)
+		{
+			if (AA_MODE == 1)
+				color = jittering(x, y);
+			else if (AA_MODE == 2)
+				color = monte_carlo(x, y, 1);
+			else {
+				if (DOF_ON) {
+					for (int i = 0; i < DOF_SAMPLES; ++i) {
+						Ray DOFray = computePrimaryRay(x, y);
+						color = color + rayTracing(DOFray, 1, 1.0, scene->getLights());
+					}
+					color = color / DOF_SAMPLES;
+				}
+				else {
+					Ray ray = computePrimaryRay(x, y);
+					color = rayTracing(ray, 1, 1.0, scene->getLights());
+				}
+			}
+			buffer_item_vector.push_back(buffer_item(x, y, color.getR(), color.getG(), color.getB()));
 		}
-		buffer_item_vector.push_back(buffer_item(x, y, color.getR(), color.getG(), color.getB()));
+		circle.put(buffer_item_vector);
+		if(!check){
+			threads_done.put(true);
+			std::cout << "NEW THREAD IN BUFFER" << std::endl;
+		}
 	}
-	circle.put(buffer_item_vector);
+	else { //done
+		threads_done.put(true);
+		std::cout << "NEW THREAD IN BUFFER" << std::endl;
+	}
+	
 	//std::cout << "FINISH LINE >>>>>>>> " << y << std::endl;
 }
 
@@ -714,6 +740,12 @@ void renderScene()
 	if(!draw) return;
 
 	if (draw_mode == 2) { //PARALLEL
+
+		std::vector<std::thread> renew_threads;
+
+		for (int k = 0; k < RES_Y; k++)
+			line_started[k] = false;
+
 		std::thread calculatePoints([]() {
 			parallelutil::parallel_for(RES_Y, parallelRender);
 		});
@@ -738,12 +770,28 @@ void renderScene()
 					index_col = 0;
 					i++;
 				}
+
+				if (!threads_done.empty()) {
+					std::cout << "SOMETHING HERE" << std::endl;
+					bool dummy = threads_done.get();
+					for (int k=0; k < RES_Y; k++) {
+						line_mtx.lock();
+						if (!line_started[k]) {
+							line_started[k] = true;
+							std::cout << "NEW THREAD STARTING" << std::endl;
+							renew_threads.push_back(std::thread(parallelRender, k, false, false));
+							line_mtx.unlock();
+							break;
+						}
+						line_mtx.unlock();
+					}
+				}
 			}
 			else {
 				break;
 			}
 		}
-
+		for (auto& t : renew_threads) { t.join(); }
 		calculatePoints.join();
 	}
 	else {

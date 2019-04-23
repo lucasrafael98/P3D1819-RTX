@@ -44,8 +44,9 @@ namespace parallelutil
 				std::cout << "parallel-util ... Thread " << thread_index + 1 << ": " << k - start_index + 1 << " / " << end_index - start_index << std::endl;
 				io_mutex.unlock();
 #endif
-				function(k);
+				function(k, false, true);
 			}
+			function(0, true, true);
 #ifdef PARALLELUTIL_VERBOSE
 			io_mutex.lock();
 			std::cout << "parallel-util ... Thread " << thread_index + 1 << ": done" << std::endl;
