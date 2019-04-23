@@ -51,7 +51,7 @@
 #define REFLECTION_SAMPLES 2
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
-#define NFF "NFF/balls_low.nff"
+#define NFF "NFF/testScene.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
@@ -694,7 +694,7 @@ void parallelRender(int y) {
 					Ray DOFray = computePrimaryRay(x, y);
 					color = color + rayTracing(DOFray, 1, 1.0, scene->getLights());
 				}
-				color = color / DOF_SAMPLES;
+				color = color / (DOF_SAMPLES + 1);
 			}
 			else {
 				Ray ray = computePrimaryRay(x, y);
