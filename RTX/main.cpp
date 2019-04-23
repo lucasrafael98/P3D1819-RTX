@@ -34,9 +34,9 @@
 #define GRID_ON true
 #define DOF_ON false
 // 0/1/2: off/jitter/montecarlo
-#define AA_MODE 1
+#define AA_MODE 0
 // 0/1/2: off/random/area/area2
-#define SOFT_SHADOWS 2
+#define SOFT_SHADOWS 0
 // 0/1/2: off/no_pow/pow
 #define REFLECTION_MODE 0
 
@@ -46,12 +46,12 @@
 #define SAMPLES 2
 #define AREA_LIGHT 0.25
 #define DOF_SAMPLES 32
-#define FOCAL_DISTANCE 1.5f
-#define APERTURE 100.0f
+#define FOCAL_DISTANCE 8.7f
+#define APERTURE 10.0f
 #define REFLECTION_SAMPLES 2
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
-#define NFF "NFF/BFboat.nff"
+#define NFF "NFF/apples.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
