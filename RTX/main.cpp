@@ -34,9 +34,12 @@
 #define GRID_ON true
 #define DOF_ON false
 // 0/1/2: off/jitter/montecarlo
-#define AA_MODE 1
-// 0/1/2: off/random/area/area2/oldarea
-#define SOFT_SHADOWS 4
+#define AA_MODE 0
+// area 2: very heavy, alternate version
+// area 3: very light, alternate version
+// area is the correct definitive version
+// 0/1/2: off/random/area/area2/area3
+#define SOFT_SHADOWS 0
 // 0/1/2: off/no_pow/pow
 #define REFLECTION_MODE 0
 
