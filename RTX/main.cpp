@@ -35,11 +35,11 @@
 #define GRID_ON true
 #define DOF_ON false
 // 0/1/2: off/jitter/montecarlo
-#define AA_MODE 0
+#define AA_MODE 2
 // area 2: very heavy, alternate version
 // area 3: very light, alternate version
 // area is the correct definitive version
-// 0/1/2: off/random/area/area2/area3
+// 0/1/2: off/random/area	(/area2/area3)
 #define SOFT_SHADOWS 0
 // 0/1/2: off/no_pow/pow
 #define REFLECTION_MODE 0
@@ -47,7 +47,7 @@
 #define MAX_MONTECARLO 5
 #define MONTECARLO_THRESHOLD 20
 #define MAX_DEPTH 6
-#define SAMPLES 4
+#define SAMPLES 2
 #define AREA_LIGHT 0.25
 #define DOF_SAMPLES 16
 #define FOCAL_DISTANCE 1.5f
@@ -57,7 +57,7 @@
 #define CIRCLE_BUFFER_LINES 512
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
-#define NFF "NFF/balls_low.nff"
+#define NFF "NFF/apples.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
@@ -76,7 +76,7 @@ GLint UniformId;
 Scene* scene = NULL;
 int RES_X, RES_Y;
 
-/* Draw Mode: 0 - point by point; 1 - line by line; 2 - full frame */
+/* Draw Mode: 0 - point by point; 1 - line by line; 2 - PARALLELISED */
 int draw_mode=2;
 
 int WindowHandle = 0;
@@ -728,12 +728,12 @@ void parallelRender(int y, bool state, bool check) {
 		circle.put(buffer_item_vector);
 		if(!check){
 			threads_done.put(true);
-			std::cout << "NEW THREAD IN BUFFER" << std::endl;
+			//std::cout << "NEW THREAD IN BUFFER" << std::endl;
 		}
 	}
 	else { //done
 		threads_done.put(true);
-		std::cout << "NEW THREAD IN BUFFER" << std::endl;
+		//std::cout << "NEW THREAD IN BUFFER" << std::endl;
 	}
 	
 	//std::cout << "FINISH LINE >>>>>>>> " << y << std::endl;
@@ -779,13 +779,13 @@ void renderScene()
 				}
 
 				if (!threads_done.empty()) {
-					std::cout << "SOMETHING HERE" << std::endl;
-					bool dummy = threads_done.get();
+					//std::cout << "SOMETHING HERE" << std::endl;
+					//bool dummy = threads_done.get();
 					for (int k=0; k < RES_Y; k++) {
 						line_mtx.lock();
 						if (!line_started[k]) {
 							line_started[k] = true;
-							std::cout << "NEW THREAD STARTING" << std::endl;
+							//std::cout << "NEW THREAD STARTING" << std::endl;
 							renew_threads.push_back(std::thread(parallelRender, k, false, false));
 							line_mtx.unlock();
 							break;
