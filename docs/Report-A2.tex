@@ -73,6 +73,14 @@
             \par
 
 
+        \begin{figure}[h]
+            \centering
+            \includegraphics[scale=0.08]{aa00}
+            \includegraphics[scale=0.08]{aajt}
+            \includegraphics[scale=0.08]{aamc}
+            \caption{\textit{AA} desligado, \textit{Jittering} com 3 \textit{samples}, \textit{Monte Carlo super sampling}.}
+        \end{figure}    
+
     \section*{\textit{Soft Shadows}}
         \subsection*{\textit{Random}}
             \par
@@ -82,19 +90,49 @@
             Este método baseia-se em simular as luzes como áreas em vez de \textit{pointlights}. Para isto, calculam-se "posições alternativas" para cada luz, que consistem de um deslocamento da posição de cada luz dentro de uma área definida previamente, e com um pouco de \textit{jittering}:
             $$ light\_alternate\_pos = \{x + \frac{p + rand}{samples * area}, y + \frac{q + rand}{samples * area}, z\}, p,q \in \{0, samples - 1\},$$
             $rand$ sendo um valor aleatório entre 0 e 1. Após calcular estas posições, da-se \textit{shuffle} ao vetor que as contém, para que cada pixel \textit{jittered} não teste as sombras com a sua posição correspondente:
-            \begin{center}
+            \begin{figure}[h]
+                \centering
                 \includegraphics[scale=0.5]{area} 
-            \end{center}
+            \end{figure}
+            \begin{figure}[h]
+                \centering
+                \includegraphics[scale=0.06]{ssoff}
+                \includegraphics[scale=0.06]{ssrd}
+                \includegraphics[scale=0.06]{ssal1}
+                \includegraphics[scale=0.06]{ssal2}
+                \caption{\textit{SS} desligadas, \textit{Random}e \textit{Area light} com a área a 0.25 e 0.5.}
+            \end{figure}    
 
         
     \section*{\textit{Depth of Field}}
         \par
 
+        \begin{figure}[h]
+            \centering
+            \includegraphics[scale=0.08]{dof1}
+            \includegraphics[scale=0.08]{dof20}
+            \includegraphics[scale=0.08]{dof100}
+            \caption{\textit{DoF} desligado, com a abertura a 20, e a 100.}
+        \end{figure}  
+
     \section*{Extras}  
         \subsection*{Ficheiros PLY}
             \par
 
+            \begin{figure}[h!]
+                \centering
+                \includegraphics[scale=0.122]{apple}
+                \includegraphics[scale=0.122]{boat}
+                \caption{Dois exemplos de cenas com ficheiros PLY.}
+            \end{figure} 
+
         \subsection*{\textit{Glossy Reflections}}  
             \par
+
+            \begin{figure}[h!]
+                \centering
+                \includegraphics[scale=0.122]{glrefl}
+                \caption{\textit{Glossy Reflections} com 2 \textit{samples}.}
+            \end{figure}
 
 \end{document}
