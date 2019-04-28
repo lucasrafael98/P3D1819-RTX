@@ -77,18 +77,15 @@
 
         \subsection*{\textit{Monte Carlo Super Sampling}}
             \par
+	É uma técnica de \textit{Super Sampling} recursiva que tem como vantagem principal o número reduzido de raios disparados. O primeiro passo é disparar quatro raios no pixel (um em cada canto) e de seguida verifica-se se as cores são todas similares entre si através de uma diferença que respeite um \textit{threshold} determinado. Em caso positivo, a cor do pixel é a média dos quatro cantos. Em caso negativo, o pixel é separado em quatro sub-pixels (disparar mais cinco raios, um em cada canto e um ao centro) e aplica-se a mesma técnica em recursão até atingir um limite de sub-pixels determinado ou até atingir finalmente cores similares. 
+	\par
+	O resultado é filtrado fazendo médias dos resultados em cada passo de recursão nos sub-pixels, ou seja, a cor final do pixel é a média das cores calculadas em recursão.
+	\begin{center}
+	\includegraphics[scale=0.40]{montecarlo}
+	\end{center}
 
-        \subsection*{\textit{Monte Carlo Super Sampling}}
-            \par
-
-
-        \begin{figure}[h]
-            \centering
-            \includegraphics[scale=0.08]{aa00}
-            \includegraphics[scale=0.08]{aajt}
-            \includegraphics[scale=0.08]{aamc}
-            \caption{\textit{AA} desligado, \textit{Jittering} com 3 \textit{samples}, \textit{Monte Carlo super sampling}.}
-        \end{figure}    
+	\par
+	É notável que a imagem feita com \textit{Jittering} possui um resultado mais agradável e real por causa da \textit{edge sharpness} apresentada, no entanto, a imagem feita com \textit{Monte Carlo Super Sampling} exige menos tempo de processamento.
 
         \begin{figure}[h]
             \centering
