@@ -51,7 +51,7 @@
             \par
 	Mesmo com a \textit{Grid} observamos um pequeno uso da CPU em geral e chegamos a conclusão que recorrer à paralelização seria o ideal para tornar o processamento mais rápido. Logo, como em \textit{OpenGL} apenas uma \textit{Thread} pode ser a encarregada por desenhar (limitações de contexto) definimos um algoritmo para realizar a paralelização, no qual criamos \textit{threads} auxiliares que são encarregadas por calcular as cores de cada pixel para um número determinado de linhas. Ao calcular todas as cores de uma linha de pixels a informação é posta num \textit{buffer} (o qual é constantemente lido pela \textit{Main Thread} que desenha a linha em questão).
 \par
-	 Apesar de ter melhorado muito a performance notamos que algumas \textit{threads} acabavam muito antes de outras já que as linhas que lhes foram pré-designadas exigiam muito menos cálculos que outras, logo, introduzimos \textbf{\textit{Thread Scheduling}} na paralelização de forma a que todas as \textit{threads} que já terminaram as linhas que lhes tinham sido pré-designadas ajudem outras \textit{threads} calculando linhas que ainda não foram desenhadas. Desta forma diminuimos \textbf{exponencialmente} o tempo de processamento final na maioria dos casos.
+	 Apesar de ter melhorado muito a performance notamos que algumas \textit{threads} acabavam muito antes de outras já que as linhas que lhes foram pré-designadas exigiam muito menos cálculos que outras, logo, introduzimos \textbf{\textit{Thread Scheduling}} na paralelização de forma a que todas as \textit{threads} que já terminaram as linhas que lhes tinham sido pré-designadas ajudem outras \textit{threads} calculando linhas que ainda não foram calculadas. Desta forma diminuimos \textbf{exponencialmente} o tempo de processamento final na maioria dos casos.
 	\begin{center}
 	\includegraphics[scale=0.65]{thread}
 	\end{center}
@@ -74,7 +74,14 @@
     \section*{\textit{Anti-Aliasing}}
         \subsection*{\textit{Jittering}}
             \par
-
+	É uma técnica de \textit{Stochastic Sampling} que garante que os raios (número fixo) sejam aleatóriamente distribuídos. O pixel é subdividido em ${SAMPLES}$ subpixels e cada subpixel possui uma pequena perturbação tendo em conta a posição na \textit{Regular Grid de Subpixels}. De seguida, a soma das cores obtidas nos subpixels é normalizada. Sendo assim, cada subpixel tem a sua cor calculada da seguinte forma:
+	\par
+	\begin{center}
+	\includegraphics[scale=0.65]{jittering}
+	\includegraphics[scale=0.65]{jittering2}
+	\end{center}
+	\par
+	Onde ${\varepsilon}$ representa um número aleatório uniforme entre 0 e 1.
         \subsection*{\textit{Monte Carlo Super Sampling}}
             \par
 	É uma técnica de \textit{Super Sampling} recursiva que tem como vantagem principal o número reduzido de raios disparados. O primeiro passo é disparar quatro raios no pixel (um em cada canto) e de seguida verifica-se se as cores são todas similares entre si através de uma diferença que respeite um \textit{threshold} determinado. Em caso positivo, a cor do pixel é a média dos quatro cantos. Em caso negativo, o pixel é separado em quatro sub-pixels (disparar mais cinco raios, um em cada canto e um ao centro) e aplica-se a mesma técnica em recursão até atingir um limite de sub-pixels determinado ou até atingir finalmente cores similares. 
@@ -98,7 +105,7 @@
     \section*{\textit{Soft Shadows}}
         \subsection*{\textit{Random}}
             \par
-	Neste método, tratamos \textit{Area Lights} como infinitos pontos de luz e selecionamos um destes pontos de forma aleatória. Para atingir este resultado, apenas provocamos uma perturbação nas componentes \textit{X} e \textit{Y} de cada ponto de luz multiplicando estas por um número aleatório entre 0 e 1.
+	Neste método tratamos \textit{Area Lights} como infinitos pontos de luz e selecionamos um destes pontos de forma aleatória. Para atingir este resultado, apenas provocamos uma perturbação nas componentes \textit{X} e \textit{Y} de cada ponto de luz multiplicando estas por um número aleatório entre 0 e 1.
         \subsection*{\textit{Area Light}}
             \par
             Este método baseia-se em simular as luzes como áreas em vez de \textit{pointlights}. Para isto, calculam-se "posições alternativas" para cada luz, que consistem de um deslocamento da posição de cada luz dentro de uma área definida previamente, e com um pouco de \textit{jittering}:
@@ -141,7 +148,7 @@
 
         \subsection*{\textit{Glossy Reflections}}  
             \par
-	As \textit{Glossy Reflections} seguem a fórmula de cálculo de uma \textit{Area Light}. Ao invés de obter a cor de uma reflexão a partir de apenas um raio, disparamos mais ${SAMPLES}^2$ raios com direções levemente alteradas de forma a apontar para uma área em volta da direção original. A cor resultante de uma reflexão é, então, a média das cores calculadas pelos raios com direções levemente alteradas e do raio principal.
+	As \textit{Glossy Reflections} seguem a fórmula de cálculo de uma \textit{Area Light}. Ao invés de obter a cor de uma reflexão a partir de apenas um raio, disparamos mais ${SAMPLES}$ raios com direções levemente alteradas de forma a apontar para uma área em volta da direção original. A cor resultante de uma reflexão é, então, a média das cores calculadas pelos raios com direções levemente alteradas e do raio principal.
             \begin{figure}[h!]
                 \centering
                 \includegraphics[scale=0.122]{glrefl}
