@@ -8,13 +8,19 @@
 
 #include <stdlib.h>
 #include <iostream>
+#include <thread>
 #include <sstream>
 #include <algorithm>
 #include <string>
 #include <stdio.h>
+#include <omp.h>
+#include <mutex>
+#include <map>
 
 #include <GL/glew.h>
 #include <GL/freeglut.h>
+#include "parallel-util.hpp"
+#include "circular_buffer.hpp"
 
 #include "Scene.h"
 #include "Color.h"
@@ -30,18 +36,28 @@
 #define DOF_ON false
 // 0/1/2: off/jitter/montecarlo
 #define AA_MODE 0
-// 0/1/2: off/random/area/area2
+// area 2: very heavy, alternate version
+// area 3: very light, alternate version
+// area is the correct definitive version
+// 0/1/2: off/random/area	(/area2/area3)
 #define SOFT_SHADOWS 0
+// 0/1/2: off/no_pow/pow
+#define REFLECTION_MODE 0
 
+#define MAX_MONTECARLO 5
+#define MONTECARLO_THRESHOLD 20
 #define MAX_DEPTH 6
-#define SAMPLES 2
+#define SAMPLES 3
 #define AREA_LIGHT 0.25
 #define DOF_SAMPLES 32
 #define FOCAL_DISTANCE 1.5f
-#define APERTURE 100.0f
+#define APERTURE 20.0f
+#define REFLECTION_SAMPLES 2
+
+#define CIRCLE_BUFFER_LINES 512
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
-#define NFF "NFF/mount_high.nff"
+#define NFF "NFF/balls_high.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
@@ -49,7 +65,6 @@ float *vertices;
 
 int size_vertices;
 int size_colors;
-
 GLfloat m[16];  //projection matrix initialized by ortho function
 
 GLuint VaoId;
@@ -61,8 +76,8 @@ GLint UniformId;
 Scene* scene = NULL;
 int RES_X, RES_Y;
 
-/* Draw Mode: 0 - point by point; 1 - line by line; 2 - full frame */
-int draw_mode=1; 
+/* Draw Mode: 0 - point by point; 1 - line by line; 2 - PARALLELISED */
+int draw_mode=2;
 
 int WindowHandle = 0;
 
@@ -129,7 +144,7 @@ static float getShadow(const Vector3 *point, const Light *light, const std::vect
 				shadowRayDirection.getX(), shadowRayDirection.getY(), shadowRayDirection.getZ());
 	if(GRID_ON){
 		float ti = INFINITY;
-		if(scene->getGrid()->intersect(shadowRay, ti))
+		if(scene->getGrid()->intersect(shadowRay, ti, draw_mode != 2))
 			return 1.0f;
 	}
 	else{
@@ -224,7 +239,7 @@ Color rayTracing( Ray ray, int depth, float RefrIndex, const std::vector<Light*>
 	SceneObject* hit = nullptr;
 	float tnear = INFINITY;
 	if(GRID_ON){
-		hit = scene->getGrid()->intersect(ray, tnear);
+		hit = scene->getGrid()->intersect(ray, tnear, draw_mode != 2);
 		// tNear gets updated with the grid's BB even if no objects are hit. We don't want that. 
 		if(!hit) tnear = INFINITY;
 	}
@@ -279,10 +294,67 @@ Color rayTracing( Ray ray, int depth, float RefrIndex, const std::vector<Light*>
 		Vector3 R = ray.getDirection() - N * 2 * ray.getDirection().dot(N);
 		R.normalize();
 
+		Color totalW = Color(0.0, 0.0, 0.0);
+		float totalL[3] = { 0.0f, 0.0f, 0.0f };
+		if (REFLECTION_MODE == 1 || REFLECTION_MODE == 2) {
+			//GLOSSY REFLECTIONS
+			for (int p = 0; p < REFLECTION_SAMPLES; p++) {
+				for (int q = 0; q < REFLECTION_SAMPLES; q++) {
+					float randomFactor = ((float)rand() / (RAND_MAX)); //0 < random < 1
+					Vector3 raySample = Vector3(R.getX() + ((p + randomFactor) * AREA_LIGHT),
+						R.getY() + ((q + randomFactor) * AREA_LIGHT),
+						R.getZ());
+
+					Ray rSample(hitPoint + N * 0.0001f, raySample);
+					Color reflectionColor = rayTracing(rSample, depth + 1, RefrIndex, lights);
+
+					totalL[0] += reflectionColor.getR();
+					totalL[1] += reflectionColor.getG();
+					totalL[2] += reflectionColor.getB();
+
+					if(REFLECTION_MODE == 1)
+						totalW = totalW + reflectionColor;
+					else if (REFLECTION_MODE == 2) {
+						int sampleDotR = raySample.dot(R);
+
+						//w = Cor * (Sample DOT OriginalRay)^Specular
+						totalW = totalW + Color((float)pow(reflectionColor.getR() * (sampleDotR), hit->getMaterial()->getSpecular()),
+							(float)pow(reflectionColor.getG() * (sampleDotR), hit->getMaterial()->getSpecular()),
+							(float)pow(reflectionColor.getB() * (sampleDotR), hit->getMaterial()->getSpecular()));
+					}
+					
+				}
+			}
+		}
+		
+
 		Ray rRay(hitPoint + N * 0.0001f, R);
 		//float VdotR =  std::max(0.0f, V.dot(-R)); unused var warning
 		Color reflectionColor = rayTracing(rRay,  depth + 1, RefrIndex, lights); //* VdotR;
-		rayColor = rayColor + reflectionColor * hit->getMaterial()->getSpecular();
+
+		//Glossy
+
+		if (REFLECTION_MODE == 1 || REFLECTION_MODE == 2) {
+			totalL[0] += reflectionColor.getR();
+			totalL[1] += reflectionColor.getG();
+			totalL[2] += reflectionColor.getB();
+			Color avgResult;
+			if (REFLECTION_MODE == 1) {
+				totalW = totalW + reflectionColor;
+				avgResult = totalW / (REFLECTION_SAMPLES * REFLECTION_SAMPLES + 1);
+			}
+			else if (REFLECTION_MODE == 2) {
+				//w = Cor * (Sample DOT OriginalRay)^Specular, dot is always 1 here (same ray)
+				totalW = totalW + Color((float)pow(reflectionColor.getR(), hit->getMaterial()->getSpecular()),
+						(float)pow(reflectionColor.getG(), hit->getMaterial()->getSpecular()),
+						(float)pow(reflectionColor.getB(), hit->getMaterial()->getSpecular()));
+				avgResult = Color(totalW.getR() / totalL[0], totalW.getG() / totalL[1], totalW.getB() / totalL[2]);
+			}
+			
+
+			rayColor = rayColor + avgResult * hit->getMaterial()->getSpecular();
+		} else
+			rayColor = rayColor + reflectionColor * hit->getMaterial()->getSpecular();
 	}
 
 	// If there's transmittance, material is transparent.
@@ -305,40 +377,110 @@ Color rayTracing( Ray ray, int depth, float RefrIndex, const std::vector<Light*>
 	return rayColor;
 }
 
-Color jittering(int x, int y) {
+Color getColorAux(float x, float y, int index, Color color) {
 	Ray ray;
+	std::vector<Light*> lights;
+	if (SOFT_SHADOWS == 2 || SOFT_SHADOWS == 4) {
+		for (Light* l : scene->getLights()) {
+			if(SOFT_SHADOWS == 2) l->reComputeAltPos(SAMPLES, AREA_LIGHT);
+			Vector3* altpos = l->getAlternatePos(index);
+			lights.push_back(new Light(altpos->getX(), altpos->getY(), altpos->getZ(),
+				l->getColor()->getR(), l->getColor()->getG(), l->getColor()->getB()));
+		}
+	}
+	else lights = scene->getLights();
+	if (DOF_ON) {
+		Color aux;
+		for (int j = 0; j < DOF_SAMPLES; j++) {
+			Ray DOFray = computePrimaryRay(x, y);
+			aux = aux + rayTracing(DOFray, 1, 1.0, lights);
+		}
+		aux = aux / DOF_SAMPLES;
+		color = color + aux;
+	}
+	else {
+		ray = computePrimaryRay(x, y);
+		color = color + rayTracing(ray, 1, 1.0, lights);
+	}
+	if (SOFT_SHADOWS == 2 || SOFT_SHADOWS == 4) for (Light* al : lights) delete al;
+	return color;
+}
+
+Color jittering(int x, int y) {
 	Color color = Color(0.0, 0.0, 0.0);
 	int i = 0;
 	for (int p = 0; p < SAMPLES; p++) {
 		for (int q = 0; q < SAMPLES; q++) {
-			std::vector<Light*> lights;
-			if(SOFT_SHADOWS == 2){
-				for(Light* l: scene->getLights()){
-					Vector3* altpos = l->getAlternatePos(i);
-					lights.push_back(new Light(altpos->getX(), altpos->getY(), altpos->getZ(),
-												l->getColor()->getR(), l->getColor()->getG(), l->getColor()->getB()));
-				}
-			}
-			else lights = scene->getLights();
 			float randomFactor = ((float)rand() / (RAND_MAX)); //0 < random < 1
-			if (DOF_ON) {
-				Color aux;
-				for (int j = 0; j < DOF_SAMPLES; j++) {
-					Ray DOFray = computePrimaryRay(x + ((p + randomFactor) / SAMPLES), y + ((q + randomFactor) / SAMPLES));
-					aux = aux + rayTracing(DOFray, 1, 1.0, lights);
-				}
-				aux = aux / DOF_SAMPLES;
-				color = color + aux;
-			}
-			else {
-				ray = computePrimaryRay(x + ((p + randomFactor) / SAMPLES), y + ((q + randomFactor) / SAMPLES));
-				color = color + rayTracing(ray, 1, 1.0, lights);
-			}
-			if(SOFT_SHADOWS == 2) for(Light* al: lights) delete al;
+			color = getColorAux(x + ((p + randomFactor) / SAMPLES), y + ((q + randomFactor) / SAMPLES), i, color);
 			i++;
 		}
 	}
 	return Color(color.getR() / i, color.getG() / i, color.getB() / i);
+}
+
+Color monte_carlo(int x, int y, int division) {
+	Color color[4] = { Color(0.0, 0.0, 0.0), Color(0.0, 0.0, 0.0), Color(0.0, 0.0, 0.0), Color(0.0, 0.0, 0.0) };
+	float x_center = x + 0.5f / division, y_center = y + 0.5f / division;
+	float x_right = x + 1.0f / division;
+	float y_top = y + 1.0f / division;
+
+	std::pair<float, float> bottom_left = std::make_pair(x, y);
+	std::pair<float, float> bottom_right = std::make_pair(x_right, y);
+	std::pair<float, float> top_left = std::make_pair(x, y_top);
+	std::pair<float, float> top_right = std::make_pair(x_right, y_top);
+
+	std::pair<float, float> corners[4] = { bottom_left, bottom_right, top_left, top_right };
+
+	for (int i = 0; i < 4; i++)
+		color[i] = getColorAux(corners[i].first, corners[i].second, i, color[i]);
+
+	if (division <= MAX_MONTECARLO) {
+		Vector3 colorV3[4] = { Vector3(color[0].getR(), color[0].getB(), color[0].getB()),
+							Vector3(color[1].getR(), color[1].getB(), color[1].getB()),
+							Vector3(color[2].getR(), color[2].getB(), color[2].getB()),
+							Vector3(color[3].getR(), color[3].getB(), color[3].getB()) };
+
+		float colorV3Length[4] = { colorV3[0].length2(), colorV3[1].length2(), colorV3[2].length2(), colorV3[3].length2() };
+
+		bool flag = false;
+		for (int i = 0; i < 4 && !flag; i++)
+			for (int j = 0; j < 4; j++)
+				if (abs(colorV3Length[i] - colorV3Length[j]) > MONTECARLO_THRESHOLD) {
+					flag = true;
+					break;
+				}
+
+		if (flag) {
+			Color recursiveColor[5] = { Color(0.0,0.0,0.0), Color(0.0,0.0,0.0), Color(0.0,0.0,0.0),Color(0.0,0.0,0.0), Color(0.0,0.0,0.0) };
+
+			for(int i = 0; i < 4; i++)
+				recursiveColor[i] = monte_carlo(corners[i].first, corners[i].second, division + 1);
+			recursiveColor[4] = monte_carlo(x_center, y_center, division + 1);
+
+			Color color_avg = Color(0.0, 0.0, 0.0);
+			for (int i = 0; i < 5; i++)
+				color_avg = color_avg + (recursiveColor[i] / 5);
+
+			return color_avg;
+
+		}
+		else {
+			Color color_avg = Color(0.0, 0.0, 0.0);
+			for (int i = 0; i < 4; i++)
+				color_avg = color_avg + (color[i] / 4);
+
+			return color_avg;
+		}
+	}
+	else {
+		Color color_avg = Color(0.0, 0.0, 0.0);
+		for (int i = 0; i < 4; i++)
+			color_avg = color_avg + (color[i] / 4);
+
+		return color_avg;
+	}
+
 }
 
 /////////////////////////////////////////////////////////////////////// ERRORS
@@ -469,6 +611,26 @@ void destroyBufferObjects()
 	checkOpenGLError("ERROR: Could not destroy VAOs and VBOs.");
 }
 
+void drawLine() {
+	glBindVertexArray(VaoId);
+	glUseProgram(ProgramId);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VboId[0]);
+	glBufferData(GL_ARRAY_BUFFER, 2 * RES_X * sizeof(float), vertices, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, VboId[1]);
+	glBufferData(GL_ARRAY_BUFFER, 3 * RES_X * sizeof(float), colors, GL_DYNAMIC_DRAW);
+
+	glUniformMatrix4fv(UniformId, 1, GL_FALSE, m);
+	glDrawArrays(GL_POINTS, 0, RES_X);
+	glFinish();
+
+	glUseProgram(0);
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	checkOpenGLError("ERROR: Could not draw scene.");
+}
+
 void drawPoints()
 {
 	glBindVertexArray(VaoId);
@@ -492,22 +654,63 @@ void drawPoints()
 
 /////////////////////////////////////////////////////////////////////// CALLBACKS
 
-// Render function by primary ray casting from the eye towards the scene's objects
+class buffer_item {
+private:
+	float pos[2];
+	float color[3];
 
-void renderScene()
-{
-	if(!draw) return;
-	int index_pos=0;
-	int index_col=0;
-	Color color;
+public:
+	buffer_item() {
+		pos[0] = 0.0;
+		pos[1] = 0.0;
+		color[0] = 0.0;
+		color[1] = 0.0;
+		color[2] = 0.0;
+	}
 
-	for (int y = 0; y < RES_Y; y++)
-	{
+	buffer_item(float x, float y, float r, float g, float b) {
+		pos[0] = x;
+		pos[1] = y;
+		color[0] = r;
+		color[1] = g;
+		color[2] = b;
+	}
+
+	float getX() { return pos[0]; }
+	float getY() { return pos[1]; }
+	float getR() { return color[0]; }
+	float getG() { return color[1]; }
+	float getB() { return color[2]; }
+};
+
+circular_buffer<std::vector<buffer_item>> circle(512); //512 = MAX LINHAS TO SHOW
+std::map <int, bool> line_started;
+circular_buffer<bool> threads_done(12);
+std::mutex line_mtx;
+
+void parallelRender(int y, bool state, bool check) {
+	if (state == false) { //not done
+		if (check) {
+			line_mtx.lock();
+			if (line_started[y]) {
+				line_mtx.unlock();
+				return;
+			}
+			else {
+				line_started[y] = true;
+				line_mtx.unlock();
+			}
+		}		
+		Color color;
+		//std::cout << "START LINE >>>>>>>> " << y << std::endl;
+		std::vector<buffer_item> buffer_item_vector;
 		for (int x = 0; x < RES_X; x++)
 		{
-			if(AA_MODE == 1)
+			if (AA_MODE == 1)
 				color = jittering(x, y);
-			else{
+			else if (AA_MODE == 2)
+				color = monte_carlo(x, y, 1);
+			else {
 				if (DOF_ON) {
 					for (int i = 0; i < DOF_SAMPLES; ++i) {
 						Ray DOFray = computePrimaryRay(x, y);
@@ -519,29 +722,130 @@ void renderScene()
 					Ray ray = computePrimaryRay(x, y);
 					color = rayTracing(ray, 1, 1.0, scene->getLights());
 				}
-			}	
-			vertices[index_pos++]= (float)x;
-			vertices[index_pos++]= (float)y;
-			colors[index_col++]= (float)color.getR();
-			colors[index_col++]= (float)color.getG();
-			colors[index_col++]= (float)color.getB();	
-
-			if(draw_mode == 0) {  // desenhar o conteudo da janela ponto a ponto
-				drawPoints();
-				index_pos=0;
-				index_col=0;
 			}
+			buffer_item_vector.push_back(buffer_item(x, y, color.getR(), color.getG(), color.getB()));
 		}
-		//printf("lineno %d; ", y);
-		if(draw_mode == 1) {  // desenhar o conteudo da janela linha a linha
-				drawPoints();
-				index_pos=0;
-				index_col=0;
+		circle.put(buffer_item_vector);
+		if(!check){
+			threads_done.put(true);
+			//std::cout << "NEW THREAD IN BUFFER" << std::endl;
 		}
 	}
+	else { //done
+		threads_done.put(true);
+		//std::cout << "NEW THREAD IN BUFFER" << std::endl;
+	}
+	
+	//std::cout << "FINISH LINE >>>>>>>> " << y << std::endl;
+}
 
-	if(draw_mode == 2) //preenchar o conteudo da janela com uma imagem completa
-		 drawPoints();
+// Render function by primary ray casting from the eye towards the scene's objects
+
+void renderScene()
+{
+	if(!draw) return;
+
+	if (draw_mode == 2) { //PARALLEL
+
+		std::vector<std::thread> renew_threads;
+
+		for (int k = 0; k < RES_Y; k++)
+			line_started[k] = false;
+
+		std::thread calculatePoints([]() {
+			//faster: parallelutil::queue_based_parallel_for(RES_Y, parallelRender);
+			parallelutil::parallel_for(RES_Y, parallelRender);
+		});
+
+		int i = 0;
+
+		while (true) {
+			if (i < RES_Y) {
+				if (!circle.empty()) {
+					std::vector<buffer_item> LineToRender = circle.get();
+					int index_pos = 0;
+					int index_col = 0;
+					for (buffer_item pointToRender : LineToRender) {
+						vertices[index_pos++] = pointToRender.getX();
+						vertices[index_pos++] = pointToRender.getY();
+						colors[index_col++] = pointToRender.getR();
+						colors[index_col++] = pointToRender.getG();
+						colors[index_col++] = pointToRender.getB();
+					}
+					drawLine();
+					index_pos = 0;
+					index_col = 0;
+					i++;
+				}
+
+				if (!threads_done.empty()) {
+					//std::cout << "SOMETHING HERE" << std::endl;
+					//bool dummy = threads_done.get();
+					for (int k=0; k < RES_Y; k++) {
+						line_mtx.lock();
+						if (!line_started[k]) {
+							line_started[k] = true;
+							//std::cout << "NEW THREAD STARTING" << std::endl;
+							renew_threads.push_back(std::thread(parallelRender, k, false, false));
+							line_mtx.unlock();
+							break;
+						}
+						line_mtx.unlock();
+					}
+				}
+			}
+			else {
+				break;
+			}
+		}
+		for (auto& t : renew_threads) { t.join(); }
+		calculatePoints.join();
+	}
+	else {
+		int index_pos = 0;
+		int index_col = 0;
+		Color color;
+		for (int y = 0; y < RES_Y; y++)
+		{
+			for (int x = 0; x < RES_X; x++)
+			{
+				if (AA_MODE == 1)
+					color = jittering(x, y);
+				else if (AA_MODE == 2)
+					color = monte_carlo(x, y, 1);
+				else {
+					if (DOF_ON) {
+						for (int i = 0; i < DOF_SAMPLES; ++i) {
+							Ray DOFray = computePrimaryRay(x, y);
+							color = color + rayTracing(DOFray, 1, 1.0, scene->getLights());
+						}
+						color = color / DOF_SAMPLES;
+					}
+					else {
+						Ray ray = computePrimaryRay(x, y);
+						color = rayTracing(ray, 1, 1.0, scene->getLights());
+					}
+				}
+				vertices[index_pos++] = (float)x;
+				vertices[index_pos++] = (float)y;
+				colors[index_col++] = (float)color.getR();
+				colors[index_col++] = (float)color.getG();
+				colors[index_col++] = (float)color.getB();
+
+				if (draw_mode == 0) {  // desenhar o conteudo da janela ponto a ponto
+					drawPoints();
+					index_pos = 0;
+					index_col = 0;
+				}
+			}
+			//printf("lineno %d; ", y);
+			if (draw_mode == 1) {  // desenhar o conteudo da janela linha a linha
+				drawPoints();
+				index_pos = 0;
+				index_col = 0;
+			}
+		}
+	}		 
 
 	Sphere::printTotalIntersections();
 	Polygon::printTotalIntersections();
@@ -643,10 +947,9 @@ int main(int argc, char* argv[])
 	scene = new Scene(std::string(NFF));
 	RES_X = scene->getCamera()->getResX();
 	RES_Y = scene->getCamera()->getResY();
-	if(SOFT_SHADOWS == 2)
+	if(SOFT_SHADOWS == 2 || SOFT_SHADOWS == 4)
 		for(Light* l: scene->getLights())
 			l->computeAreaLight(SAMPLES, AREA_LIGHT);
-
 	if(draw_mode == 0) { // desenhar o conteudo da janela ponto a ponto
 		size_vertices = 2*sizeof(float);
 		size_colors = 3*sizeof(float);

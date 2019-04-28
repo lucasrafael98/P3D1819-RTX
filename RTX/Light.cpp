@@ -37,3 +37,19 @@ void Light::computeAreaLight(int samples, float area){
         iter_swap(this->_altpos.begin() + i, this->_altpos.begin() + j);
     }
 }
+
+void Light::reComputeAltPos(int samples, float area){
+    for(int i = this->_altpos.size() - 1; i!=-1; i--){
+        int sz = int(sqrt(this->_altpos.size()));
+        int p = i / sz;
+        int q = i % sz;
+        float randomFactor = ((float)rand() / (RAND_MAX)); //0 < random < 1
+        this->_altpos.at(i)->setX(this->_pos->getX() + ((p + randomFactor) / samples * area));
+        this->_altpos.at(i)->setY(this->_pos->getY() + ((q + randomFactor) / samples * area));
+        this->_altpos.at(i)->setZ(this->_pos->getZ());
+    }
+    for(int i = this->_altpos.size() - 1; i!=-1; i--){
+        int j = (double)rand() / RAND_MAX * i;
+        iter_swap(this->_altpos.begin() + i, this->_altpos.begin() + j);
+    }
+}
