@@ -98,7 +98,7 @@
     \section*{\textit{Soft Shadows}}
         \subsection*{\textit{Random}}
             \par
-
+	Neste método, tratamos \textit{Area Lights} como infinitos pontos de luz e selecionamos um destes pontos de forma aleatória. Para atingir este resultado, apenas provocamos uma perturbação nas componentes \textit{X} e \textit{Y} de cada ponto de luz multiplicando estas por um número aleatório entre 0 e 1.
         \subsection*{\textit{Area Light}}
             \par
             Este método baseia-se em simular as luzes como áreas em vez de \textit{pointlights}. Para isto, calculam-se "posições alternativas" para cada luz, que consistem de um deslocamento da posição de cada luz dentro de uma área definida previamente, e com um pouco de \textit{jittering}:
