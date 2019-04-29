@@ -94,7 +94,7 @@
 	\par
 	É notável que a imagem feita com \textit{Jittering} possui um resultado mais agradável e real por causa da \textit{edge sharpness} apresentada, no entanto, a imagem feita com \textit{Monte Carlo Super Sampling} exige menos tempo de processamento.
 
-        \begin{figure}[h]
+        \begin{figure}[h!]
             \centering
             \includegraphics[scale=0.08]{aa00}
             \includegraphics[scale=0.08]{aajt}
@@ -127,7 +127,18 @@
         
     \section*{\textit{Depth of Field}}
         \par
-
+        Para fazer o \textit{depth of field} começámos por alterar os raios primários de acordo com a flag \textit{DOF\_ON} que nos diz se a opção desta especificação está ativada. Dentro dessa condição, primeiro calculamos um ponto aleatório numa área circular de acordo com a abertura e metemos esse ponto em coordenadas do mundo, de forma a ser usado como origem do novo raio primário.
+        \par
+        Em segundo lugar calculamos o ponto correspondente ao pixel no plano de visualização com as componentes da cena \textit{w}, \textit{h} e \textit{df}. Com este ponto podemos usar a distância focal dada como parâmetro e o componente \textit{df} para encontrar o ponto correspondente no plano focal.
+        \par
+        Finalmente usamos o ponto da área circular e o do plano focal para calcular a direção do novo raio primário, como demonstrado na seguinte equação:
+        \begin{equation*}
+        \begin{aligned}
+        d_{\mathrm{r}} &=p-l_{\mathrm{s}} \\ &=\left(p_{x}-l_{\mathrm{s}}\right) u+\left(p_{y}-l_{\mathrm{sy}}\right) v-f w 
+        \end{aligned}
+        \end{equation*}
+        \par
+        Para obter vários pontos aletórios na área circular é feito um ciclo com um número especificado de vezes como parâmetro, na criação dos raios primários e depois é feita a média das cores devolvidas por esse raios primários. No caso de \textit{jittering}, é feito o ciclo mencionado em cima, dentro da iteração quadrática de \textit{jittering}.
         \begin{figure}[h]
             \centering
             \includegraphics[scale=0.08]{dof1}
@@ -139,6 +150,7 @@
     \section*{Extras}  
         \subsection*{Ficheiros PLY}
             \par
+            Para conseguir importar ficheiros com extensão \textit{.ply} tentámos juntar as funcionalidades da extensão \textit{.nff}, de forma a obter as componentes dos materiais para cada objeto. Por isso continuamos a usar ficheiros \textit{.nff} mas cada objecto \textit{.ply} pode ser referenciado dentro desse ficheiro. Assim torna-se possível usar os materiais já enunciados para os ficheiros \textit{.ply} que forem ncessários. A figura 4 mostra dois exemplos deste ficheiros:
             \begin{figure}[h!]
                 \centering
                 \includegraphics[scale=0.122]{apple}
@@ -154,5 +166,4 @@
                 \includegraphics[scale=0.122]{glrefl}
                 \caption{\textit{Glossy Reflections} com 2 \textit{samples}.}
             \end{figure}
-
 \end{document}
