@@ -35,7 +35,7 @@
 #define GRID_ON true
 #define DOF_ON false
 // 0/1/2: off/jitter/montecarlo
-#define AA_MODE 2
+#define AA_MODE 0
 // area 2: very heavy, alternate version
 // area 3: very light, alternate version
 // area is the correct definitive version
@@ -47,9 +47,9 @@
 #define MAX_MONTECARLO 5
 #define MONTECARLO_THRESHOLD 20
 #define MAX_DEPTH 6
-#define SAMPLES 2
+#define SAMPLES 3
 #define AREA_LIGHT 0.25
-#define DOF_SAMPLES 16
+#define DOF_SAMPLES 32
 #define FOCAL_DISTANCE 1.5f
 #define APERTURE 20.0f
 #define REFLECTION_SAMPLES 2
@@ -57,7 +57,7 @@
 #define CIRCLE_BUFFER_LINES 512
 
 // NOTE: Edit this to NFF/<your file>.nff to change the nff being parsed.
-#define NFF "NFF/apples.nff"
+#define NFF "NFF/balls_high.nff"
 
 // Points defined by 2 attributes: positions which are stored in vertices array and colors which are stored in colors array
 float *colors;
