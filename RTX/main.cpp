@@ -751,7 +751,6 @@ void renderScene()
 
 		for (int k = 0; k < RES_Y; k++)
 			line_started[k] = false;
-
 		std::thread calculatePoints([]() {
 			//faster: parallelutil::queue_based_parallel_for(RES_Y, parallelRender);
 			parallelutil::parallel_for(RES_Y, parallelRender);
@@ -920,7 +919,7 @@ void setupGLUT(int argc, char* argv[])
 
 	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_GLUTMAINLOOP_RETURNS);
 	
-	glutInitWindowPosition(640,100);
+	glutInitWindowPosition(0,0);
 	glutInitWindowSize(RES_X, RES_Y);
 	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA);
 	glDisable(GL_DEPTH_TEST);
